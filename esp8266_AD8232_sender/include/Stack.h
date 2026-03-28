@@ -26,6 +26,21 @@ typedef struct ECG_t {
     uint16_t data[120];   // 120 x 2 = 240 octets for security   
 }ECG_t;
 
+/**
+ * @brief 
+ * uint32_t startTime;    // micros() du premier échantillon
+ * uint16_t interval;     // Temps entre deux points en micros (ex: 5000 pour 200Hz)
+ * uint16_t count;        // Nombre de points réellement envoyés (ex: 120)
+ * uint16_t data[x];    // Les valeurs brutes de l'ADC
+ * 
+ */
+typedef struct ECG_Packet_t{
+    uint32_t startTime;    // micros() du premier échantillon 
+    uint16_t interval;     // Temps entre deux points en micros (ex: 5000 pour 200Hz)
+    uint16_t count;        // Nombre de points réellement envoyés (ex: 120)
+    uint16_t data[100];    // Les valeurs brutes de l'ADC
+}ECG_Packet_t;
+
 
 class Stack 
 {

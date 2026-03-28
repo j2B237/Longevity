@@ -19,23 +19,32 @@
 #define LO_MOINS 4
 #define LO_PLUS  5
 
+#define SAMPLER_LIMIT 100
+#define DELAY_SENDER_TICKER_MS 0.51
+#define DELAY_SAMPLE_TICKER_MS 0.005
+
+#define BAUD 115200
+
+
 /* ====== Globales Objects ====== */
 
 // mac address is about 48 bits (6 bytes) expressed in hexadecimal format. 
 uint8_t rcvMacAddress[] = {0x08, 0x3A, 0x8D, 0xE3, 0xB2, 0x41};
 //uint8_t rcvMacAddress[] = {0x08, 0x3A, 0x8D, 0xE3, 0xBD, 0x0E};
 
-
 // Data struct to store ECG Data before sending
-volatile static ECG_t buffer = {};
+volatile static ECG_Packet_t buffer;
+Stack ecgStack;
 
 // Flag for synchronization
 volatile bool dataReady = false;
+volatile bool newSampleReady = false;                       
 
-volatile uint16_t lastEcgValue = 0;
-volatile bool newSampleReady = false;
 
-Stack ecgStack;
+volatile uint16_t lastEcgValue = 0;                         // Grab each ecg sample
+volatile uint32_t packetStartTime = 0;                      // Temps micros du 1er échantillon
+volatile int sampleCounter = 0;                             // Compteur interne à l'ISR
+
 
 // Two differents : once for Sending data every 500 ms 
 // and another for sampling AD8232 every 5 ms (200 Hz)
@@ -43,7 +52,6 @@ Stack ecgStack;
 Ticker senderTicker;
 Ticker samplerTicker;
 
-uint16_t val;
 
 /* ===== ISR : Interrupt Service Routime ===== */
 
@@ -55,8 +63,9 @@ uint16_t val;
 void
 onTimingReach()
 {
-    if (ecgStack.size() >= 120){
+    if (sampleCounter >= SAMPLER_LIMIT){
         dataReady = true;
+        sampleCounter = 0;
     }
 }
 
@@ -68,12 +77,28 @@ void
 onSampleTick()
 {
     // 1. Lire la valeur (très rapide)
-    /*if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
+    if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
+
+        // Si c'est le tout premier point du futur paquet
+        if (sampleCounter == 0) {
+            packetStartTime = micros(); 
+        }
+
         lastEcgValue = (uint16_t)analogRead(A0);
+        sampleCounter++;
         newSampleReady = true; 
-    }*/
+    }
+
+    // Si c'est le tout premier point du futur paquet
+    /*
+    if (sampleCounter == 0) {
+        packetStartTime = micros(); 
+    }
+    
     lastEcgValue = (uint16_t)analogRead(A0);
-    newSampleReady = true; 
+    sampleCounter++;
+    newSampleReady = true;
+   */
 }
 /* ====== Functions prototypes ======== */
 
@@ -88,7 +113,7 @@ setup()
     // Serial monitor configuration 
     //===============================
 
-    Serial.begin (115200);
+    Serial.begin (BAUD);
     Serial.println();
 
     // ============================
@@ -97,8 +122,8 @@ setup()
 
     // Send 100 samples 5ms x 100 = 500 ms
 
-    senderTicker.attach  (0.51, onTimingReach);
-    samplerTicker.attach (0.005, onSampleTick);
+    senderTicker.attach  (DELAY_SENDER_TICKER_MS, onTimingReach);
+    samplerTicker.attach (DELAY_SAMPLE_TICKER_MS, onSampleTick);
 
     //===========================
     // WiFi configuration 
@@ -138,17 +163,22 @@ setup()
 void
 loop()
 {
-    // 1. Faked data acquisition
+    // 1. Data acquisition
     if (newSampleReady){
         newSampleReady = false;
-        ecgStack.push(lastEcgValue);
+        ecgStack.push(lastEcgValue);      
     }
 
     // 2. Data transfert over ESP-NOW
     if (dataReady){
 
+        // Buffer configuration for ESP-NOW
+        buffer.startTime = packetStartTime;
+        buffer.interval = 5000;
+        buffer.count = SAMPLER_LIMIT;
+
         // Copy data from stack into outcome buffer
-        for (uint8_t j = 0; j < 120; j++){
+        for (uint8_t j = 0; j < SAMPLER_LIMIT; j++){
             buffer.data[j] = ecgStack.top();
         }
 
@@ -167,7 +197,7 @@ loop()
 void
 onDataSend (uint8_t *macAddress, uint8_t status)
 {
-    Serial.printf("Stack's size = %u\n", ecgStack.size());
+    //Serial.printf("Stack's size = %u\n", ecgStack.size());
     Serial.println ("\r\nStatus of last sent packet....");
     Serial.printf (status == 0 ? "Success\n" : "Failed\n");
 }
