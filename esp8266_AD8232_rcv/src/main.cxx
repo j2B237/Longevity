@@ -2,7 +2,7 @@
  * @file main.cxx
  * @author youssouf Binyoum
  * @brief Program using ESP-NOW protocole to send ECG Data.
- *         . The program is running on an Esp8266 (SLAVE)
+ *        The program is running on an Esp8266 (SLAVE)
  * @version 0.1
  * @date 2026-03-24
  * 
@@ -16,12 +16,11 @@
 
 #include <Stack.h>
 
-/* ==== Custom data type ===== */
-
+#define BAUD 115200
 
 /* ===== GLobales variables ===== */
 
-ECG_t buffer;
+ECG_Packet_t buffer;
 
 /* ===== Functions prototypes ===== */
 
@@ -36,7 +35,7 @@ void
 setup()
 {
     // Serial monitor config
-    Serial.begin (115200);
+    Serial.begin (BAUD);
     Serial.println();
 
     delay(500);     // 500 ms
@@ -64,7 +63,6 @@ setup()
     
     // Register the receiver callback function
     esp_now_register_recv_cb ((esp_now_recv_cb_t)onDataRcv);
-
 }
 
 
@@ -90,7 +88,11 @@ onDataRcv(const uint8_t *macAddress, const uint16_t *incomingData, int len)
     memcpy (&buffer, incomingData, sizeof(buffer));
 
     Serial.println("Received:\r\n");
-    for (uint8_t i = 0; i < 120; i++){
+    Serial.printf("Start time : %u ms\r\n", buffer.startTime);
+    Serial.printf("Interval   : %u ms\r\n", buffer.interval);
+    Serial.printf("Buffer's count : %u\r\n", buffer.count);
+
+    for (uint8_t i = 0; i < buffer.count; i++){
         Serial.println(buffer.data[i]);
     }
     Serial.println();
