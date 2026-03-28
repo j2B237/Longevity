@@ -32,8 +32,16 @@ volatile static ECG_t buffer = {};
 // Flag for synchronization
 volatile bool dataReady = false;
 
+volatile uint16_t lastEcgValue = 0;
+volatile bool newSampleReady = false;
+
 Stack ecgStack;
+
+// Two differents : once for Sending data every 500 ms 
+// and another for sampling AD8232 every 5 ms (200 Hz)
+
 Ticker senderTicker;
+Ticker samplerTicker;
 
 uint16_t val;
 
@@ -52,13 +60,25 @@ onTimingReach()
     }
 }
 
+/**
+ * @brief ISR call every 5 ms to read ADC
+ * 
+ */
+void 
+onSampleTick()
+{
+    // 1. Lire la valeur (très rapide)
+    /*if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
+        lastEcgValue = (uint16_t)analogRead(A0);
+        newSampleReady = true; 
+    }*/
+    lastEcgValue = (uint16_t)analogRead(A0);
+    newSampleReady = true; 
+}
 /* ====== Functions prototypes ======== */
 
 void
 onDataSend (uint8_t *macAddress, uint8_t status);
-
-void
-collectECGData();
 
 
 void
@@ -75,7 +95,10 @@ setup()
     // Interrupt initialization
     // ============================
 
-    senderTicker.attach (0.50, onTimingReach);
+    // Send 100 samples 5ms x 100 = 500 ms
+
+    senderTicker.attach  (0.51, onTimingReach);
+    samplerTicker.attach (0.005, onSampleTick);
 
     //===========================
     // WiFi configuration 
@@ -116,10 +139,10 @@ void
 loop()
 {
     // 1. Faked data acquisition
-    //collectECGData();
-    val = (uint16_t)analogRead(A0);
-    ecgStack.push(val);
-    delay (1);
+    if (newSampleReady){
+        newSampleReady = false;
+        ecgStack.push(lastEcgValue);
+    }
 
     // 2. Data transfert over ESP-NOW
     if (dataReady){
@@ -134,10 +157,9 @@ loop()
         
         ecgStack.reset();
         dataReady = false;
-        
-        yield(); // LAISSE DU TEMPS AU SYSTÈME (IMPORTANT)
     }
-    
+
+    yield(); // LAISSE DU TEMPS AU SYSTÈME (IMPORTANT)
 }
 
 
@@ -145,19 +167,7 @@ loop()
 void
 onDataSend (uint8_t *macAddress, uint8_t status)
 {
+    Serial.printf("Stack's size = %u\n", ecgStack.size());
     Serial.println ("\r\nStatus of last sent packet....");
     Serial.printf (status == 0 ? "Success\n" : "Failed\n");
-}
-
-void
-collectECGData()
-{
-    if (digitalRead (LO_MOINS) == 1 || digitalRead (LO_PLUS) == 1){
-        // Do nothing
-    }
-    else{
-        val = (uint16_t)analogRead(A0);
-        ecgStack.push(val);
-        //delay (5);
-    }
 }
