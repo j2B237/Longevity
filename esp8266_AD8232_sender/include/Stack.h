@@ -22,7 +22,7 @@
  * we can send 125 values inside a frane
  * 
  */
-typedef struct ECG_t {
+typedef struct  __attribute__((packed)) {
     uint16_t data[120];   // 120 x 2 = 240 octets for security   
 }ECG_t;
 
@@ -34,7 +34,7 @@ typedef struct ECG_t {
  * uint16_t data[x];    // Les valeurs brutes de l'ADC
  * 
  */
-typedef struct ECG_Packet_t{
+typedef struct __attribute__((packed)){
     uint32_t startTime;    // micros() du premier échantillon 
     uint16_t interval;     // Temps entre deux points en micros (ex: 5000 pour 200Hz)
     uint16_t count;        // Nombre de points réellement envoyés (ex: 120)

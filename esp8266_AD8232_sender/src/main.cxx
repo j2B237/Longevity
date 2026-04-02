@@ -77,7 +77,7 @@ void
 onSampleTick()
 {
     // 1. Lire la valeur (très rapide)
-    if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
+    /*if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
 
         // Si c'est le tout premier point du futur paquet
         if (sampleCounter == 0) {
@@ -87,10 +87,10 @@ onSampleTick()
         lastEcgValue = (uint16_t)analogRead(A0);
         sampleCounter++;
         newSampleReady = true; 
-    }
+    }*/
 
     // Si c'est le tout premier point du futur paquet
-    /*
+    
     if (sampleCounter == 0) {
         packetStartTime = micros(); 
     }
@@ -98,7 +98,7 @@ onSampleTick()
     lastEcgValue = (uint16_t)analogRead(A0);
     sampleCounter++;
     newSampleReady = true;
-   */
+   
 }
 /* ====== Functions prototypes ======== */
 
