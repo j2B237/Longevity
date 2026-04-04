@@ -36,7 +36,7 @@ setup()
 {
     // Serial monitor config
     Serial.begin (BAUD);
-    Serial.println();
+    //Serial.println();
 
     delay(500);     // 500 ms
 
@@ -54,12 +54,12 @@ setup()
     // =====================
 
     if(esp_now_init () != 0){
-        Serial.println("esp_now_init() failed\n");
+        //Serial.println("esp_now_init() failed\n");
         return;
     }
 
     int roleStatus = esp_now_set_self_role (ESP_NOW_ROLE_SLAVE);
-    Serial.println(roleStatus == 0 ? "Role successfully set\n" : "Failed to set role\n");
+    //Serial.println(roleStatus == 0 ? "Role successfully set\n" : "Failed to set role\n");
     
     // Register the receiver callback function
     esp_now_register_recv_cb ((esp_now_recv_cb_t)onDataRcv);
@@ -78,7 +78,7 @@ void
 getMacAddress()
 {
     String macAddress = WiFi.macAddress();
-    Serial.printf("Receiver Mac Address : %s\n", macAddress.c_str());
+    //Serial.printf("Receiver Mac Address : %s\n", macAddress.c_str());
 }
 
 
