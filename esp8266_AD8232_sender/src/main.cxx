@@ -20,8 +20,8 @@
 #define LO_PLUS  5
 
 #define SAMPLER_LIMIT 100
-#define DELAY_SENDER_TICKER_MS 0.51
-#define DELAY_SAMPLE_TICKER_MS 0.005
+#define DELAY_SENDER_TICKER_MS 0.500f
+#define DELAY_SAMPLE_TICKER_MS 0.005f
 
 #define BAUD 115200
 
@@ -77,7 +77,7 @@ void
 onSampleTick()
 {
     // 1. Lire la valeur (très rapide)
-    /*if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
+    if (digitalRead(LO_MOINS) == 0 && digitalRead(LO_PLUS) == 0) {
 
         // Si c'est le tout premier point du futur paquet
         if (sampleCounter == 0) {
@@ -87,17 +87,18 @@ onSampleTick()
         lastEcgValue = (uint16_t)analogRead(A0);
         sampleCounter++;
         newSampleReady = true; 
-    }*/
+    }
 
     // Si c'est le tout premier point du futur paquet
     
-    if (sampleCounter == 0) {
+    /*if (sampleCounter == 0) {
         packetStartTime = micros(); 
     }
     
     lastEcgValue = (uint16_t)analogRead(A0);
     sampleCounter++;
     newSampleReady = true;
+    */
    
 }
 /* ====== Functions prototypes ======== */
@@ -114,7 +115,7 @@ setup()
     //===============================
 
     Serial.begin (BAUD);
-    Serial.println();
+    //Serial.println();
 
     // ============================
     // Interrupt initialization
@@ -137,21 +138,21 @@ setup()
     //===========================
 
     if(esp_now_init() != 0){
-        Serial.println("esp_now_init() failed\n");
+        //Serial.println("esp_now_init() failed\n");
         return;
     }
 
     // Define board role
     int addRole = esp_now_set_self_role (ESP_NOW_ROLE_CONTROLLER);
-    Serial.println(addRole == 0 ? "Role set successfully\n" : "Failed to set role\n");
+    //Serial.println(addRole == 0 ? "Role set successfully\n" : "Failed to set role\n");
 
     // Add peer using his mac address
     int addStatus = esp_now_add_peer (rcvMacAddress, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
-    Serial.println(addRole == 0 ? "Successfully pairing\n" : "Pairing failed\n");
+    //Serial.println(addRole == 0 ? "Successfully pairing\n" : "Pairing failed\n");
 
     // Register acknowledge callback function
     int regStatus = esp_now_register_send_cb ((esp_now_send_cb_t)onDataSend);
-    Serial.println(regStatus == 0 ? "Function registered successfully\n" : "Failed to register\n");
+    //Serial.println(regStatus == 0 ? "Function registered successfully\n" : "Failed to register\n");
 
     /* ==== GPIO Configuration ======= */
     pinMode (LO_MOINS, INPUT);
@@ -185,7 +186,7 @@ loop()
         int result = esp_now_send (rcvMacAddress, (uint8_t*)&buffer, sizeof(buffer));
         //Serial.println(result == 0 ? "Data successfully copy into buffer\n" : "Failed to copy data\n");
         
-        ecgStack.reset();
+        ecgStack.reset();               // Reset for security reasons
         dataReady = false;
     }
 
@@ -198,6 +199,6 @@ void
 onDataSend (uint8_t *macAddress, uint8_t status)
 {
     //Serial.printf("Stack's size = %u\n", ecgStack.size());
-    Serial.println ("\r\nStatus of last sent packet....");
-    Serial.printf (status == 0 ? "Success\n" : "Failed\n");
+    //Serial.println ("\r\nStatus of last sent packet....");
+    //Serial.printf (status == 0 ? "Success\n" : "Failed\n");
 }

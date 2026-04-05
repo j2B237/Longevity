@@ -27,8 +27,9 @@ uint16_t Stack::top()
 {
     // Check first if Stack is not empty
     assert(!this->empty());
-
-    return m_firstCellPtr->getValue();
+    uint16_t value = m_firstCellPtr->getValue();
+    this->pop();
+    return value;
 }
 
 void Stack::pop()
