@@ -38,7 +38,7 @@ setup()
     Serial.begin (BAUD);
     //Serial.println();
 
-    delay(500);     // 500 ms
+    //delay(500);     // 500 ms
 
     // ===================
     // Wfi configuration
