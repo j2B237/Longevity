@@ -35,7 +35,7 @@ typedef struct __attribute__((packed)){
  * 
  */
 typedef struct __attribute__((packed)){
-    uint32_t magic;         // Valeur est de 0xDEADBEEF
+    //uint32_t magic;         // Valeur est de 0xDEADBEEF
     uint32_t startTime;    // micros() du premier échantillon 
     uint16_t interval;     // Temps entre deux points en micros (ex: 5000 pour 200Hz)
     uint16_t count;        // Nombre de points réellement envoyés (ex: 120)

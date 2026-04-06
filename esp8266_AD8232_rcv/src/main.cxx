@@ -28,7 +28,7 @@ void
 getMacAddress();
 
 void
-onDataRcv(const uint8_t *macAddress, const uint16_t *incomingData, int len);
+onDataRcv(const uint8_t *macAddress, const uint8_t *incomingData, int len);
 
 
 void
@@ -83,22 +83,11 @@ getMacAddress()
 
 
 void
-onDataRcv(const uint8_t *macAddress, const uint16_t *incomingData, int len)
+onDataRcv(const uint8_t *macAddress, const uint8_t *incomingData, int len)
 {
-    memcpy (&buffer, incomingData, sizeof(buffer));
-    
-    // ENVOI BINAIRE vers l'USB (beaucoup plus rapide et facile à lire en C++)
-    // On envoie toute la structure d'un coup
-    Serial.write((uint8_t*)&buffer, sizeof(buffer)); 
-
-    /*Serial.println("Received:\r\n");
-    Serial.printf("Start time : %u ms\r\n", buffer.startTime);
-    Serial.printf("Interval   : %u ms\r\n", buffer.interval);
-    Serial.printf("Buffer's count : %u\r\n", buffer.count);
-
-    for (uint8_t i = 0; i < buffer.count; i++){
-        Serial.println(buffer.data[i]);
+    if (len >= sizeof (ECG_Packet_t)){
+        //memcpy (&buffer, incomingData, sizeof(buffer));
+        Serial.write(incomingData, sizeof(ECG_Packet_t)); 
     }
-    Serial.println();
-    */
+    
 }

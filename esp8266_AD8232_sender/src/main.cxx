@@ -34,14 +34,14 @@ uint8_t rcvMacAddress[] = {0x08, 0x3A, 0x8D, 0xE3, 0xB2, 0x41};
 
 // Data struct to store ECG Data before sending
 volatile static ECG_Packet_t buffer;
-Stack ecgStack;
+//Stack ecgStack;
 
 // Flag for synchronization
 volatile bool dataReady = false;
 volatile bool newSampleReady = false;                       
 
 
-volatile uint16_t lastEcgValue = 0;                         // Grab each ecg sample
+//volatile uint16_t lastEcgValue = 0;                         // Grab each ecg sample
 volatile uint32_t packetStartTime = 0;                      // Temps micros du 1er échantillon
 volatile int sampleCounter = 0;                             // Compteur interne à l'ISR
 
@@ -65,7 +65,6 @@ onTimingReach()
 {
     if (sampleCounter >= SAMPLER_LIMIT){
         dataReady = true;
-        sampleCounter = 0;
     }
 }
 
@@ -84,9 +83,8 @@ onSampleTick()
             packetStartTime = micros(); 
         }
 
-        lastEcgValue = (uint16_t)analogRead(A0);
+        buffer.data[sampleCounter] = (uint16_t)analogRead(A0);
         sampleCounter++;
-        newSampleReady = true; 
     }
 
     // Si c'est le tout premier point du futur paquet
@@ -95,9 +93,8 @@ onSampleTick()
         packetStartTime = micros(); 
     }
     
-    lastEcgValue = (uint16_t)analogRead(A0);
+    buffer.data[sampleCounter] = (uint16_t)analogRead(A0);
     sampleCounter++;
-    newSampleReady = true;
     */
    
 }
@@ -164,29 +161,20 @@ setup()
 void
 loop()
 {
-    // 1. Data acquisition
-    if (newSampleReady){
-        newSampleReady = false;
-        ecgStack.push(lastEcgValue);      
-    }
 
-    // 2. Data transfert over ESP-NOW
+    // Data transfert over ESP-NOW
     if (dataReady){
 
         // Buffer configuration for ESP-NOW
         buffer.startTime = packetStartTime;
-        buffer.interval = 5000;
+        buffer.interval = 5000;  // 5ms = 5000µs
         buffer.count = SAMPLER_LIMIT;
 
-        // Copy data from stack into outcome buffer
-        for (uint8_t j = 0; j < SAMPLER_LIMIT; j++){
-            buffer.data[j] = ecgStack.top();
-        }
-
+  
         int result = esp_now_send (rcvMacAddress, (uint8_t*)&buffer, sizeof(buffer));
         //Serial.println(result == 0 ? "Data successfully copy into buffer\n" : "Failed to copy data\n");
         
-        ecgStack.reset();               // Reset for security reasons
+        sampleCounter = 0;
         dataReady = false;
     }
 
