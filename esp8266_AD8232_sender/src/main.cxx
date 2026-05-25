@@ -34,7 +34,7 @@ uint8_t rcvMacAddress[] = {0x08, 0x3A, 0x8D, 0xE3, 0xB2, 0x41};
 
 // Data struct to store ECG Data before sending
 volatile static ECG_Packet_t buffer;
-//Stack ecgStack;
+
 
 // Flag for synchronization
 volatile bool dataReady = false;
