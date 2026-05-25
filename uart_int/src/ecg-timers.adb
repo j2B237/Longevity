@@ -1,6 +1,7 @@
 with AVR;
 with AVR.MCU;
 with Interfaces;
+-- with ECG.ADC;
 with AD8232;
 
 package body ECG.TIMERS is
@@ -31,6 +32,7 @@ package body ECG.TIMERS is
    begin
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
+      -- Current_Sample := ADC.Read_ADC0;
 
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then

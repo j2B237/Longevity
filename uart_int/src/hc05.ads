@@ -4,6 +4,7 @@
 
 with AVR;
 with AVR.MCU;
+with ECG;
 
 
 package HC05 is 
@@ -16,11 +17,13 @@ package HC05 is
    --  hors ou presentent dans le meme package.
    Current_State : System_State := OFF with Volatile;
 
+   procedure Transmit_ECG_Packet (Data : ECG.ECG_Packet);
+
 private
 
-   procedure UART_RX_ISR;
-   pragma Machine_Attribute (Entity => UART_RX_ISR,
-                           Attribute_Name => "signal");
-   pragma Export (C, UART_RX_ISR, AVR.MCU.Sig_USART_RX_String);
+   --procedure UART_RX_ISR;
+   --pragma Machine_Attribute (Entity => UART_RX_ISR,
+   --                        Attribute_Name => "signal");
+   --pragma Export (C, UART_RX_ISR, AVR.MCU.Sig_USART_RX_String);
 
 end HC05;
