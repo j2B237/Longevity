@@ -2,6 +2,7 @@ with System.Machine_Code;
 
 with ECG;
 with ECG.ADC;
+with ECG.DSP;
 with ECG.Manager;
 with ECG.TIMERS;
 with ECG.UART;
@@ -25,6 +26,8 @@ package body ECG.Hardware is
    procedure Init_hardware is
    begin
 
+      ECG.DSP.Reset_Filters;
+      
       --  Config AD8232
       AD8232.Init;
 
@@ -37,10 +40,10 @@ package body ECG.Hardware is
       -- Config UART
       ECG.UART.Init
         (Baud_Divider => ECG.UART.Baud_115200_16MHz, 
-        Double_Speed => False, Mode => interrupt);
+        Double_Speed => False, Mode => polled);
       
       -- ECG.UART.Put_Line ("Starting UART...");
-      ECG.UART.CRLF;
+      -- ECG.UART.CRLF;
 
       Enable_Interrupts;
    end Init_hardware;

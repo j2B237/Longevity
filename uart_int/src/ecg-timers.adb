@@ -1,7 +1,8 @@
 with AVR;
 with AVR.MCU;
+with ECG;
 with Interfaces;
--- with ECG.ADC;
+with ECG.DSP;
 with AD8232;
 
 package body ECG.TIMERS is
@@ -29,16 +30,21 @@ package body ECG.TIMERS is
 
    procedure Timer_COMPA_ISR is 
       Current_Sample : Interfaces.Unsigned_16;
+      Clean_Sample   : Interfaces.Unsigned_16;
    begin
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
       -- Current_Sample := ADC.Read_ADC0;
 
+      --  2. Apply cascade filter 
+      Clean_Sample := ECG.DSP.Filter_Notch (Current_Sample);
+      Clean_Sample := ECG.DSP.Filter_Lowpass (Clean_Sample);
+
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then
-         Buffer_A (Sample_Index) := Current_Sample;
+         Buffer_A (Sample_Index) := Clean_Sample;
       else
-         Buffer_B (Sample_Index) := Current_Sample;
+         Buffer_B (Sample_Index) := Clean_Sample;
       end if;
 
       --  Buffer swapping through Index management
