@@ -1,0 +1,18 @@
+name = "uart_int"
+description = "UART reception using avrada uart capabilities"
+version = "0.1.0-dev"
+
+authors = ["yossep Binyoum"]
+maintainers = ["yossep Binyoum <yossep237@gmail.com>"]
+maintainers-logins = ["j2b237"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = ["ada", "avr", "uart"]
+
+executables = ["uart_int"]
+
+[[depends-on]]
+avrada_mcu = "^2.2.0"
+avrada_lib = "^2.1.0"
+avrada_rts = "^2.0.1"
+gnat_avr_elf = "^12.2.1"
