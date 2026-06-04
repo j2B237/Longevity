@@ -1,8 +1,0 @@
-/obj/
-/bin/
-/alire/
-/config/
-
-*.elf
-*.hex
-*.code-workspace
