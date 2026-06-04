@@ -15,7 +15,7 @@ package ECG is
    Buffer_A : ECG_Packet;
    Buffer_B : ECG_Packet;
 
-   type UART_Mode_Kind is (polled, interrupt, interrupt_rx);
+   type UART_Mode_Kind is (polled, interrupt_rx, interrupt_tx, interrupt_rx_tx);
 
    Packet_Ready : Boolean := False with Volatile;
 

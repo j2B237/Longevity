@@ -36,13 +36,21 @@ package body ECG.UART is
       -- Configuration UART
       Init_Common (Baud_Divider, Double_Speed);
 
-      if Mode = polled then
-         --  Enable receiver and transmitter
-         MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask);
-      elsif Mode = interrupt_rx then
-         --  Enable receiver, transmitter and interruption on receiver
-         MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask or AVR.MCU.RXCIE0_Mask);
-      end if;
+      case Mode is 
+         when polled =>
+            --  Enable receiver and transmitter
+            MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask);
+         when interrupt_rx =>
+            --  Enable receiver, transmitter and interruption on receiver
+            MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask or AVR.MCU.RXCIE0_Mask);
+         when interrupt_tx =>
+            --  Enable receiver and transmitter and later UDRIE0_Mask
+            MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask);
+         when interrupt_rx_tx =>
+            --  Enable receiver, transmitter and interruption on receiver
+            MCU.UCSR0B := (MCU.TXEN0_Mask or MCU.RXEN0_Mask or AVR.MCU.RXCIE0_Mask);
+         when others => null;
+      end case;
       
    end Init;
 
