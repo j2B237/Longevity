@@ -21,6 +21,20 @@ package body HC05 is
       ECG.UART.Put_Char (ASCII.LF);
    end Transmit_ECG_Packet;
 
+
+   ---------------------------
+   -- UART_Interrupt_Send   --
+   ----------------------------
+
+   procedure UART_Interrupt_Send (Data : ECG.ECG_Packet) is
+   begin
+      -- Synchronisation value (LSB: 170, MSB: 85)
+      ECG.UART.UART_Send (16#AA55#);
+      for I in Data'Range loop
+         ECG.UART.UART_Send (Data (I));
+      end loop;
+   end UART_Interrupt_Send;
+
    -------------------
    --  UART_RX_ISR  --
    -------------------

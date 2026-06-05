@@ -33,7 +33,7 @@ begin
       -- On attend en tâche de fond qu'un paquet de 50 échantillons soit complet
       if Packet_Ready then
          ECG.Manager.Get_Ready_Packet (Current_Packet);
-         HC05.Transmit_ECG_Packet (Current_Packet);
+         HC05.UART_Interrupt_Send (Current_Packet);
       end if;
    end loop;
 

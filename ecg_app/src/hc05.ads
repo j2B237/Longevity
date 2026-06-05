@@ -18,6 +18,9 @@ package HC05 is
    Current_State : System_State := OFF with Volatile;
 
    procedure Transmit_ECG_Packet (Data : ECG.ECG_Packet);
+   
+   -- Interrupt routines
+   procedure UART_Interrupt_Send (Data : ECG.ECG_Packet);
 
 private
 

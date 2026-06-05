@@ -2,6 +2,20 @@ with AVR.UART;
 
 package body ECG.UART is
 
+   --  Private entities
+
+   --  Type and subtype for circular buffer
+   BUFFER_SIZE : constant := 128;
+   subtype Tx_Index is Natural range 0 .. BUFFER_SIZE - 1;
+
+   --  Unnamed array type
+   Tx_buffer : array (Tx_Index) of Interfaces.Unsigned_8;
+
+   --  Index for Buffer's Head and Tail
+   TX_Head : TX_Index := 0 with Volatile;
+   TX_Tail : TX_Index := 0 with Volatile;
+
+
    --------------------
    --  Init_Common  --
    --------------------
@@ -180,6 +194,66 @@ package body ECG.UART is
       end if;
       Put_Char (Character'Val (48 + D1));
    end Put_UInt16;
+
+
+   ----------------------------- 
+   --  Interruption routines  --
+   -----------------------------
+
+
+   -----------------
+   --  UART_Send  --
+   -----------------
+
+   procedure UART_Send (Data : Interfaces.Unsigned_16) is
+      LSB   : Interfaces.Unsigned_8 := 0;
+      MSB   : Interfaces.Unsigned_8 := 0;
+      Next  : Tx_Index := 0;
+   begin 
+      LSB := Interfaces.Unsigned_8 (Data and 16#FF#);
+      MSB := Interfaces.Unsigned_8 (Shift_Right (Data, 8));
+
+      -- Add LSB first 
+      Next := (TX_Head + 1) mod BUFFER_SIZE;
+
+      while Next = TX_Tail loop
+         null;
+      end loop;
+
+      Tx_buffer (TX_Head) := LSB;
+      TX_Head := Next;
+
+      -- Add MSB
+      Next := (TX_Head + 1) mod BUFFER_SIZE;
+      while Next = TX_Tail loop
+         null;
+      end loop;
+
+      Tx_buffer (TX_Head) := MSB;
+      TX_Head := Next;
+
+      -- Start Transmission by setting UDRIE flag
+      MCU.UCSR0B := MCU.UCSR0B or MCU.UDRIE0_Mask;
+
+   end UART_Send;
+
+
+   -------------
+   --   ISR   --
+   -------------
+
+   procedure USART_UDRE_ISR is
+   begin
+      if TX_Head /= TX_Tail then
+      
+         MCU.UDR0 := Tx_buffer (TX_Tail);
+         -- Increment
+         TX_Tail := (TX_Tail + 1) mod BUFFER_SIZE;
+      else
+         -- Nothing else to send then disable interrupt
+         MCU.UCSR0B := MCU.UCSR0B and MCU.UDRIE0_Mask;
+      end if;
+   end USART_UDRE_ISR;
 
 
 end ECG.UART;

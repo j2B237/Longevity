@@ -62,4 +62,14 @@ package ECG.UART is
    procedure Put_UInt16 (Data : Interfaces.Unsigned_16);
 
 
+   --  Interrupts routines
+   procedure UART_Send (Data : Interfaces.Unsigned_16);
+
+private
+
+   procedure USART_UDRE_ISR;
+   pragma Machine_Attribute (Entity => USART_UDRE_ISR,
+                           Attribute_Name => "signal");
+   pragma Export (C, UART_Send, MCU.Sig_USART_UDRE_String);   
+   -- USART, Data Register Empty __vector_19
 end ECG.UART;
