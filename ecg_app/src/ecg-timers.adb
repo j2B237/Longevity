@@ -38,8 +38,8 @@ package body ECG.TIMERS is
       Clean_Sample   : Interfaces.Unsigned_16;
    begin
       --  Reading AD8232 sensor through ADC
-      -- Current_Sample := AD8232.Get_Reading;
-      Current_Sample := ADC.Read_ADC0;
+      Current_Sample := AD8232.Get_Reading;
+      -- Current_Sample := ADC.Read_ADC0;
 
       --  2. Apply cascade filter 
       --  Clean_Sample := ECG.DSP.Filter_Notch (Current_Sample);

@@ -247,12 +247,12 @@ package body ECG.UART is
    procedure USART_UDRE_ISR is
    begin
       if TX_Head /= TX_Tail then
-         LED.On;
+         --LED.On;
          MCU.UDR0 := Tx_buffer (TX_Tail);
          -- Increment
          TX_Tail := (TX_Tail + 1) mod BUFFER_SIZE;
       else
-         LED.Off;
+         --LED.Off;
          -- Nothing else to send then disable interrupt
          MCU.UCSR0B := MCU.UCSR0B and (not MCU.UDRIE0_Mask);
       end if;
