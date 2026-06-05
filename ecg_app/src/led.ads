@@ -3,6 +3,8 @@
 --  @Brief : Simple implementation of LED component
 
 package LED is 
+   pragma Preelaborate;
+   
    procedure Init;
    procedure On;
    procedure Off;

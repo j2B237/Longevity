@@ -1,4 +1,5 @@
 with AVR.UART;
+with LED;
 
 package body ECG.UART is
 
@@ -209,9 +210,10 @@ package body ECG.UART is
       LSB   : Interfaces.Unsigned_8 := 0;
       MSB   : Interfaces.Unsigned_8 := 0;
       Next  : Tx_Index := 0;
-   begin 
+   begin
+
       LSB := Interfaces.Unsigned_8 (Data and 16#FF#);
-      MSB := Interfaces.Unsigned_8 (Shift_Right (Data, 8));
+      MSB := Interfaces.Unsigned_8 (Interfaces.Shift_Right (Data, 8));
 
       -- Add LSB first 
       Next := (TX_Head + 1) mod BUFFER_SIZE;
@@ -245,13 +247,14 @@ package body ECG.UART is
    procedure USART_UDRE_ISR is
    begin
       if TX_Head /= TX_Tail then
-      
+         LED.On;
          MCU.UDR0 := Tx_buffer (TX_Tail);
          -- Increment
          TX_Tail := (TX_Tail + 1) mod BUFFER_SIZE;
       else
+         LED.Off;
          -- Nothing else to send then disable interrupt
-         MCU.UCSR0B := MCU.UCSR0B and MCU.UDRIE0_Mask;
+         MCU.UCSR0B := MCU.UCSR0B and (not MCU.UDRIE0_Mask);
       end if;
    end USART_UDRE_ISR;
 

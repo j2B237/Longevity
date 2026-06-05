@@ -8,7 +8,7 @@ package ECG is
    --  of objects in the library level before proceding the
    --- main program.
    
-   SAMPLES_PER_PACKET : constant Positive := 10;
+   SAMPLES_PER_PACKET : constant Positive := 25;
    type ECG_Packet is array (Positive range 1 .. SAMPLES_PER_PACKET) of Interfaces.Unsigned_16;
    
    --  Double buffer (Like OpenGL API)
@@ -19,7 +19,7 @@ package ECG is
 
    Packet_Ready : Boolean := False with Volatile;
 
-   --  Samples count (1 to 50)
+   --  Samples count (1 to SAMPLES_PER_PACKET)
    Sample_Index : Positive := 1;
 
    --  Flag to know which tampon is currently being 

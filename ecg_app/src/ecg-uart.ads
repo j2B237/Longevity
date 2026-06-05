@@ -70,6 +70,6 @@ private
    procedure USART_UDRE_ISR;
    pragma Machine_Attribute (Entity => USART_UDRE_ISR,
                            Attribute_Name => "signal");
-   pragma Export (C, UART_Send, MCU.Sig_USART_UDRE_String);   
+   pragma Export (C, USART_UDRE_ISR, "__vector_19");   
    -- USART, Data Register Empty __vector_19
 end ECG.UART;
