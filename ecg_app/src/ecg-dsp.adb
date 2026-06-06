@@ -2,8 +2,14 @@ package body ECG.DSP is
 
    use Interfaces;
 
-   --  Variables d'état pour le filtre Notch (Mémoire des échantillons précédents)
-   --  Volatile ou simplement variables globales au corps du package
+   --  Un filtre d'ordre 7 introduit un retard 
+   --  D = 7 / 2 = 3.5 echantillons
+   Filter_Order : constant := 7;
+
+   --------------------------------------------
+   --  Variables d'état pour le filtre Notch --
+   --------------------------------------------
+   
    Notch_X1, Notch_X2 : Interfaces.Integer_32 := 0;
    pragma Volatile (Notch_X1);
    pragma Volatile (Notch_X2);
@@ -12,8 +18,19 @@ package body ECG.DSP is
    pragma Volatile (Notch_Y1);
    pragma Volatile (Notch_Y2);
 
-   --  Variables d'état pour le filtre Passe-bas
-   LP_Y1 : Interfaces.Integer_32 := 0;
+   -------------------------------------------------
+   --  Variables d'état pour le filtre Passe-bas  --
+   -------------------------------------------------
+
+   --  Les coefficients du filtre passe-bas a phase lineaire 
+   Filter_Coefs : constant array (0 .. Filter_Order) of Interfaces.Integer_32 := 
+      (2, -87, 32, 535, 535, 32, -87, 2);
+
+   --  Historique des 8 derniers echantillons 
+   Last_Samples : array(0 .. Filter_Order) of Interfaces.Integer_32 := (others => 0) with Volatile_Components;
+   pragma Volatile (Last_Samples);
+
+   Head : Natural := 0 with Volatile;
 
    ---------------------
    --  Reset_Filters  --
@@ -23,7 +40,11 @@ package body ECG.DSP is
    begin
       Notch_X1 := 0; Notch_X2 := 0;
       Notch_Y1 := 0; Notch_Y2 := 0;
-      LP_Y1    := 0;
+      Head     := 0;
+
+      for I in 0 .. Filter_Order loop
+         Last_Samples (I) := 0;
+      end loop;
    end Reset_Filters;
 
    --------------------
@@ -64,20 +85,40 @@ package body ECG.DSP is
    function Filter_Lowpass (Sample : Interfaces.Unsigned_16)
       return Interfaces.Unsigned_16 
    is
-      X0 : constant Interfaces.Integer_32 := 
-         Interfaces.Integer_32 (Sample);
-
-      --  Filtre passe-bas du premier ordre (Moyenne mobile exponentielle)
-      --  y[n] = a * x[n] + (1 - a) * y[n-1]
-      --  En virgule fixe (base 256, soit 'a' = 32/256 => environ 0.125)
-      Alpha : constant := 32;
-
-      Accumulator : Interfaces.Integer_32;
+      -- Correction : Initialisation explicite indispensable en Ada
+      Accumulator : Interfaces.Integer_32 := 0;
+      Sign_Index  : Integer;
    begin
-      Accumulator := (Alpha * X0 + (256 - Alpha) * LP_Y1);
-      LP_Y1 := Accumulator / 256;
-      
-      return Interfaces.Unsigned_16 (LP_Y1);
+      -- On stocke le signal arrivant
+      Last_Samples (Head) := Interfaces.Integer_32 (Sample);
+  
+      --  Equation de convolution
+      for K in 0 .. Filter_Order loop
+         Sign_Index := Head - K;
+         
+         -- Gestion stricte et sûre du buffer circulaire pour AVR
+         if Sign_Index < 0 then
+            Sign_Index := Sign_Index + (Filter_Order + 1);
+         end if;
+
+         Accumulator := @ + (Filter_Coefs (K) * Last_Samples (Sign_Index));
+      end loop;
+
+      --  On fait avancer la tête du buffer circulaire
+      Head := (@ + 1) mod (Filter_Order + 1);
+
+      --  Compensation du gain : On divise par 1024
+      Accumulator := @ / 1024;
+
+      --  Sécurité Anti-saturation de l'ADC (0 .. 1023)
+      if Accumulator < 0 then
+         return 0;
+      elsif Accumulator > 1023 then
+         return 1023;
+      else
+         return Interfaces.Unsigned_16 (Accumulator);
+      end if;
+
    end Filter_Lowpass;
 
 
