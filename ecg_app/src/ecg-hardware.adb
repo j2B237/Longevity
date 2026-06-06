@@ -30,7 +30,7 @@ package body ECG.Hardware is
       --  Led config
       LED.Init;
 
-      -- ECG.DSP.Reset_Filters;
+      ECG.DSP.Reset_Filters;
       
       --  Config AD8232
       AD8232.Init;
