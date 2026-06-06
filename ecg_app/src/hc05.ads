@@ -13,8 +13,6 @@ package HC05 is
    type System_State is (OFF, ON);
 
    --  Entite public 
-   --  Volatile car partage et modifiable par d'autres entities
-   --  hors ou presentent dans le meme package.
    Current_State : System_State := OFF with Volatile;
 
    procedure Transmit_ECG_Packet (Data : ECG.ECG_Packet);
