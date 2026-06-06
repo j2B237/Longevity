@@ -1,0 +1,11 @@
+-- Coefficients pour filtre d'ordre 7 (Virgule fixe *1024)
+B : constant array (0 .. 7) of Interfaces.Integer_32 := (
+ 2,
+ -87,
+ 32,
+ 535,
+ 535,
+ 32,
+ -87,
+ 2
+);
