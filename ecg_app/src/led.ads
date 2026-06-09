@@ -8,6 +8,7 @@ package LED is
    procedure Init;
    procedure On;
    procedure Off;
+   procedure Toggle;
 
 private
    pragma Inline (Init);

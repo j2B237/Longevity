@@ -7,9 +7,11 @@ package body LED is
 
    --  Constant private entities
    HAS_LED  : constant Boolean := True;
-   LED      : Boolean renames MCU.DDRB_Bits (0);
-   LED_PORT : Boolean renames MCU.PORTB_Bits (0);
+   LED      : Boolean renames MCU.DDRD_Bits  (MCU.PORTD4_Bit);
+   LED_PORT : Boolean renames MCU.PORTD_Bits (MCU.PORTD4_Bit);
    
+   LED_IS_ON : Boolean := False with Volatile;
+
    ----------
    -- Init --
    ----------
@@ -43,5 +45,20 @@ package body LED is
          LED_PORT := AVR.Low;
       end if;
    end Off;
+
+   --------------
+   --  Toggle  --
+   -------------
+
+   procedure Toggle is
+   begin
+      if LED_IS_ON then
+         LED_IS_ON := False;
+         Off;
+      else
+         LED_IS_ON := True;
+         On;
+      end if;
+   end Toggle;
 
 end LED;

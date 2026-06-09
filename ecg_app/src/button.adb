@@ -1,18 +1,22 @@
-with AVR;
-with AVR.MCU;
-with Interfaces;
+with AVR.Real_Time;
 
+with Interfaces;
+with LED;
 
 package body BUTTON is
 
+   use AVR.Real_Time;
    use AVR;
    use Interfaces;
 
-   --  Constant entities. We can use them for conditionnal compilation
+
+   -- Package-level entities
+   Last_Interrupt_Time : Time := 0;
+   Debounce_Time       : constant Time_Span := Milliseconds(100);
 
    HAS_BUTTON     : constant Boolean := True;
-   BUTTON         : Boolean renames MCU.DDRD_Bits  (2);
-   BUTTON_PORT    : Boolean renames MCU.PORTD_Bits (2);
+   BUTTON         : Boolean renames MCU.DDRD_Bits  (MCU.PORTD2_Bit);
+   BUTTON_PORT    : Boolean renames MCU.PORTD_Bits (MCU.PORTD2_Bit);
    
    ----------
    -- Init --
@@ -34,6 +38,19 @@ package body BUTTON is
       return;
    end Init;
 
+   ----------------------
+   --  Init_Interrupt  --
+   ----------------------
+
+   procedure Init_Interrupt is
+   begin
+      --  Enable PD2 as Input with Pull-Up resistor
+      Init;
+
+      --  Activate INT0
+      MCU.EIMSK := MCU.EIMSK or MCU.INT0_Mask;
+
+   end Init_Interrupt;
 
    ---------------------
    -- IsButtonPressed --
@@ -43,7 +60,7 @@ package body BUTTON is
    begin
       if HAS_BUTTON then
          -- Le bouton est actif (LOW) donc Niveau bas.
-         if ((State and Shift_Left (1, Integer (MCU.PORTB2_Bit))) = 0) then
+         if ((State and Shift_Left (1, Integer (MCU.PORTD2_Bit))) = 0) then
             return True;
          else 
             return False;
@@ -52,5 +69,19 @@ package body BUTTON is
          return False;
       end if;
    end IsButtonPressed;
+
+
+   ------------
+   --   ISR  --
+   ------------
+
+   procedure Button_INTO_ISR is
+      
+   begin
+      if Current_Time - Last_Interrupt_Time > Debounce_Time then
+         LED.Toggle;
+         Last_Interrupt_Time := Current_Time;
+      end if;
+   end Button_INTO_ISR;
 
 end BUTTON;
