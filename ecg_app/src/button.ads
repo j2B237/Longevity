@@ -1,7 +1,7 @@
 --  @File : button.ads
 --  @Author : Yossep BINYOUM
 --  @Brief : Basic implementation for a psuh Button 
---  We use polling mode to capture even.
+--          We use interruption mode to capture ecg event.
 
 
 package BUTTON is 

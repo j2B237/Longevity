@@ -2,10 +2,6 @@ package body ECG.DSP is
 
    use Interfaces;
 
-   --  Un filtre d'ordre 7 introduit un retard 
-   --  D = 7 / 2 = 3.5 echantillons
-   Filter_Order : constant := 7;
-
    --------------------------------------------
    --  Variables d'état pour le filtre Notch --
    --------------------------------------------
@@ -23,8 +19,88 @@ package body ECG.DSP is
    -------------------------------------------------
 
    --  Les coefficients du filtre passe-bas a phase lineaire 
-   Filter_Coefs : constant array (0 .. Filter_Order) of Interfaces.Integer_32 := 
-      (2, -87, 32, 535, 535, 32, -87, 2);
+
+   --  Un filtre d'ordre 10 introduit un retard 
+   --  D = 70 / 2 = 35 echantillons
+
+   Filter_Order : constant := 70;
+
+   -- Coefficients pour filtre d'ordre 6 (Virgule fixe *1024)
+   Filter_Coefs : constant array (0 .. Filter_Order) of Interfaces.Integer_32 := (
+   0,
+   -1,
+   -1,
+   1,
+   1,
+   0,
+   -2,
+   -1,
+   1,
+   3,
+   0,
+   -4,
+   -3,
+   3,
+   6,
+   0,
+   -8,
+   -6,
+   6,
+   12,
+   0,
+   -15,
+   -11,
+   12,
+   22,
+   0,
+   -30,
+   -21,
+   25,
+   48,
+   0,
+   -75,
+   -63,
+   95,
+   310,
+   410,
+   310,
+   95,
+   -63,
+   -75,
+   0,
+   48,
+   25,
+   -21,
+   -30,
+   0,
+   22,
+   12,
+   -11,
+   -15,
+   0,
+   12,
+   6,
+   -6,
+   -8,
+   0,
+   6,
+   3,
+   -3,
+   -4,
+   0,
+   3,
+   1,
+   -1,
+   -2,
+   0,
+   1,
+   1,
+   -1,
+   -1,
+   0
+   );
+
+
 
    --  Historique des 8 derniers echantillons 
    Last_Samples : array(0 .. Filter_Order) of Interfaces.Integer_32 := (others => 0) with Volatile_Components;
@@ -56,7 +132,7 @@ package body ECG.DSP is
    is
       X0 : constant Interfaces.Integer_32 := 
          Interfaces.Integer_32 (Sample);
-      Y0 : Interfaces.Integer_32;
+      Y0 : Interfaces.Integer_32 := 0; 
       --  Exemple d'équation de filtre Notch 50Hz standard à virgule fixe
       --  y[n] = (x[n] - 2*cos(w)*x[n-1] + x[n-2] + 2*r*cos(w)*y[n-1] - r^2*y[n-2])
    begin
@@ -87,7 +163,7 @@ package body ECG.DSP is
    is
       -- Correction : Initialisation explicite indispensable en Ada
       Accumulator : Interfaces.Integer_32 := 0;
-      Sign_Index  : Integer;
+      Sign_Index  : Integer := 0;
    begin
       -- On stocke le signal arrivant
       Last_Samples (Head) := Interfaces.Integer_32 (Sample);

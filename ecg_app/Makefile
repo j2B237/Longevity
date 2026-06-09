@@ -43,7 +43,7 @@
 #------------------- device chip (MCU) -------------------------
 # reading the device chip from alire.toml
 # MCU := $(shell awk -F= '{IGNORECASE = 1} /^ *AVRADA_RTS.AVR_MCU/ {print $$2;}' alire.toml | xargs)
-MCU := atmega328p 
+MCU := atmega328p
 AVR_RUNTIME_BUILD := Production
 
 #---------------- Programming Options (avrdude) ----------------
@@ -59,11 +59,11 @@ FORMAT = ihex
 # to get a full listing.
 #
 # AVRDUDE_PROGRAMMER = stk500v1 -b 57600
-AVRDUDE_PROGRAMMER = arduino -b 115200
+AVRDUDE_PROGRAMMER = arduino -b 57600
 
 # com1 = serial port.
 # programmer connected to serial device, add -b 57600 for Arduinos
-AVRDUDE_PORT = /dev/ttyACM0
+AVRDUDE_PORT = /dev/ttyUSB0
 AVRDUDE_WRITE_FLASH = -F -U flash:w:
 AVRDUDE_WRITE_EEPROM = -U eeprom:w:
 
