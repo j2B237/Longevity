@@ -5,6 +5,7 @@ with AVR.MCU;
 with ECG;
 with ECG.ADC;
 with ECG.DSP;
+with ECG.DSP.Generic_Moving_Average_Filter;
 
 with AD8232;
 
@@ -14,7 +15,9 @@ package body ECG.TIMERS is
 
    use AVR;
 
-   -------------------
+   use ECG.DSP.Generic_Moving_Average_Filter;
+
+   ------------------ -
    --  Init_Timer1  --
    -------------------
 
@@ -44,12 +47,13 @@ package body ECG.TIMERS is
       --  2. Apply cascade filter 
       --  Clean_Sample := ECG.DSP.Filter_Notch (Current_Sample);
       --  Clean_Sample := ECG.DSP.Filter_Lowpass (Current_Sample);
+      Update (Current_Sample, Clean_Sample);
 
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then
-         Buffer_A (Sample_Index) := Current_Sample;
+         Buffer_A (Sample_Index) := Clean_Sample;
       else
-         Buffer_B (Sample_Index) := Current_Sample;
+         Buffer_B (Sample_Index) := Clean_Sample;
       end if;
 
       --  Buffer swapping through Index management

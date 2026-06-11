@@ -1,3 +1,5 @@
+with ECG.DSP.Generic_Moving_Average_Filter;
+
 package body ECG.DSP is
 
    use Interfaces;
@@ -48,6 +50,8 @@ package body ECG.DSP is
 
    procedure Reset_Filters is
    begin
+
+      --  Reset Notch filter
       Notch_X1 := 0; Notch_X2 := 0;
       Notch_Y1 := 0; Notch_Y2 := 0;
       Head     := 0;
@@ -55,6 +59,11 @@ package body ECG.DSP is
       for I in 0 .. Filter_Order loop
          Last_Samples (I) := 0;
       end loop;
+
+
+      --  Reset Moving Average Filter
+      ECG.DSP.Generic_Moving_Average_Filter.Reset_filter;
+      
    end Reset_Filters;
 
    --------------------

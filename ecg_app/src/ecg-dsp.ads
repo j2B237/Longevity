@@ -23,9 +23,4 @@ package ECG.DSP is
    function Filter_Lowpass (Sample : Interfaces.Unsigned_16)
       return Interfaces.Unsigned_16;
 
-   --  Noving Average filter removing high frequency noise
-   function Filter_Moving_Avg (Sample : Interfaces.Unsigned_16)
-      return Interfaces.Unsigned_16;
-
-
 end ECG.DSP;

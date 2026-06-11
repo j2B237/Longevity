@@ -5,14 +5,12 @@ with LED;
 
 package body BUTTON is
 
-   use AVR.Real_Time;
+
    use AVR;
    use Interfaces;
 
 
    -- Package-level entities
-   Last_Interrupt_Time : Time := 0;
-   Debounce_Time       : constant Time_Span := Milliseconds(100);
 
    HAS_BUTTON     : constant Boolean := True;
    BUTTON         : Boolean renames MCU.DDRD_Bits  (MCU.PORTD2_Bit);
@@ -78,10 +76,7 @@ package body BUTTON is
    procedure Button_INTO_ISR is
       
    begin
-      if Current_Time - Last_Interrupt_Time > Debounce_Time then
-         LED.Toggle;
-         Last_Interrupt_Time := Current_Time;
-      end if;
+      LED.Toggle;
    end Button_INTO_ISR;
 
 end BUTTON;

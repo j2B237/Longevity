@@ -26,8 +26,8 @@ procedure Serial_Com is
    procedure Wait_4_MS is 
       new AVR.Wait.Generic_Wait_USecs (Avrada_Rts_Config.Clock_Frequency, 4000);
 
-   Data           : Interfaces.Unsigned_16;
-   Clean_Sample   : Interfaces.Unsigned_16;
+   Data           : Interfaces.Unsigned_16 := 0;
+   Clean_Sample   : Interfaces.Unsigned_16 := 0;
 begin
 
    --  Initiaization
