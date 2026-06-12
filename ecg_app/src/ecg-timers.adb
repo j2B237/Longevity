@@ -43,7 +43,7 @@ package body ECG.TIMERS is
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
 
-      --  2. Apply cascade filter 
+      --  Apply cascade filter 
       Update (Current_Sample, Clean_Sample);
 
       --  Store ECG data in the current active buffer

@@ -1,3 +1,8 @@
+----------------------------------------------------------------------------------------------------
+--  Onde P : Représente l'activation électrique des oreillettes (les cavités supérieures du cœur).
+--  Complexe QRS : Représente l'activation des ventricules (les cavités inférieures).
+--  Onde T : Correspond à la phase de repos et de récupération du muscle cardiaque
+-----------------------------------------------------------------------------------------------------
 with AVR;
 with Interfaces;
 

@@ -22,6 +22,9 @@ package HC05 is
 
 private
 
+   HEADER : constant := 16#AA55#;
+   FOOTER : constant := 16#FF99#;
+   
    --procedure UART_RX_ISR;
    --pragma Machine_Attribute (Entity => UART_RX_ISR,
    --                        Attribute_Name => "signal");

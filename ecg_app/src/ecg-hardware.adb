@@ -3,6 +3,7 @@ with System.Machine_Code;
 with ECG;
 with ECG.ADC;
 with ECG.DSP;
+with ECG.DSP.Heart_Rate_Algorithms;
 with ECG.Manager;
 with ECG.TIMERS;
 with ECG.UART;
@@ -11,6 +12,8 @@ with LED;
 
 package body ECG.Hardware is
       
+   use ECG.DSP;
+
    -------------------------
    --  Enable_Interrupts --
    ------------------------
@@ -31,6 +34,7 @@ package body ECG.Hardware is
       LED.Init;
 
       ECG.DSP.Reset_Filters;
+      Heart_Rate_Algorithms.Initialize;
       
       --  Config AD8232
       AD8232.Init;
