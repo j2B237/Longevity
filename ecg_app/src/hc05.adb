@@ -28,11 +28,15 @@ package body HC05 is
 
    procedure UART_Interrupt_Send (Data : ECG.ECG_Packet) is
    begin
-      -- Synchronisation value (LSB: 170, MSB: 85)
+      -- HEADER Synchronisation value (LSB: 85 (55), MSB: 170 (AA))
       ECG.UART.UART_Send (16#AA55#);
       for I in Data'Range loop
          ECG.UART.UART_Send (Data (I));
       end loop;
+      -- FOOTER : Marker value before reading BPM (LSB:  153 (99), MSB: 255 (FF))
+
+      -- Sending BPM Value
+
    end UART_Interrupt_Send;
 
    -------------------
