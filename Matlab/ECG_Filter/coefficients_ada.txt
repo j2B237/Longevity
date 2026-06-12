@@ -1,0 +1,11 @@
+---------------------------------------------------
+-- Coefficients générés automatiquement par MATLAB --
+---------------------------------------------------
+
+Filter_Order : constant := 10;
+
+Filter_Coefs : constant array (0 .. Filter_Order) of Interfaces.Integer_32 :=
+   (222, -60, 222, 
+    554, -4, 554, 
+    186, 160, 186, 
+    619, 619);

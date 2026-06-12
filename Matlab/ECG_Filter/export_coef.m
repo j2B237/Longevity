@@ -1,5 +1,5 @@
 %% Script pour exporter les coefs du filtre passe-bas a zero phase
-Coef = Coef_ada;
+Coef = round(df3_Num * 1024);
 
 fileID = fopen("matlab_ecg_coef.txt", 'w');
 

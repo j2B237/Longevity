@@ -60,13 +60,15 @@ FORMAT = ihex
 #
 # AVRDUDE_PROGRAMMER = stk500v1 -b 57600
 # Config for Arduni NANO
-# AVRDUDE_PROGRAMMER = arduino -b 57600
+AVRDUDE_PROGRAMMER = arduino -b 57600
+AVRDUDE_PORT = /dev/ttyUSB0
 
-AVRDUDE_PROGRAMMER = arduino -b 115200
-
+# Config for Arduino UNO
+#AVRDUDE_PROGRAMMER = arduino -b 115200
+#AVRDUDE_PORT = /dev/ttyACM0
 # com1 = serial port.
 # programmer connected to serial device, add -b 57600 for Arduinos
-AVRDUDE_PORT = /dev/ttyACM0
+
 
 AVRDUDE_WRITE_FLASH = -F -U flash:w:
 AVRDUDE_WRITE_EEPROM = -U eeprom:w:

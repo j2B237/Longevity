@@ -12,7 +12,7 @@ package ECG.DSP.Generic_Moving_Average_Filter is
 
    use Interfaces;
 
-   Size : constant := 32;           -- Can be change to 16, 32, 64, 128, etc
+   Size : constant := 4;           -- Can be change to 16, 32, 64, 128, etc
 
 
    --  Object of this type will be modified by Interrupt routine

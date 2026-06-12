@@ -1,5 +1,5 @@
 % Charger les donnees depuis fichier csv
-data = readtable("donnees_ecg_brutes.csv");
+data = readtable("donnees_holter_ecg.csv");
 
 % Extraction de l'index
 index = data.Index;
@@ -14,18 +14,20 @@ raw = data.ECG_Raw;
 % Conversion du timestamp en sec
 tps_sec = timestamp / 1000;
 
-%figure;
-%plot(tps_sec, raw, 'b');
-%grid on;
-%title('Signal ECG brut importé');
-%xlabel('Temps (secondes)');
-%ylabel('Amplitude');
+figure;
+plot(tps_sec, raw, 'b');
+grid on;
+title('Signal ECG brut importé');
+xlabel('Temps (secondes)');
+ylabel('Amplitude');
 
 %% Calcul de la duree total 
 duree_total = tps_sec(end) - tps_sec(1);
 nb_samples = length(raw);
 
-Fs = nb_samples/duree_total;
+%Fs = nb_samples/duree_total;
+
+Fs = 250;
 
 fprintf("Frequence echantillonage est %.2f Hz\n", Fs)
 %% Conception d'un filtre passe-bas du 70eme ordre avec Fc=50Hz
@@ -38,6 +40,7 @@ Fnorm = Fc/(Fs/2);
 
 % Design du filtre
 df3 = designfilt("lowpassfir", FilterOrder=70, CutOffFrequency=Fnorm);
+%filterAnalyzer(df3);
 
 % Trace de la courbe du temps de propagation pour verification 
 % de constance sur toute la gamme de frequence.
@@ -52,30 +55,31 @@ D = mean(grpdelay(df3, nb_samples, Fs));
 y = filter(df3, [raw; zeros(D,1)]);
 y = y(D+1:end);
 
-%plot(tps_sec, raw, tps_sec, y, LineWidth=1.5)
-%title("Filtered Waveforms")
-%xlabel("Time (s)")
-%legend("Original Noisy Signal","Filtered Signal")
-%grid on
-%axis tight
+plot(tps_sec, raw, tps_sec, y, LineWidth=1.5)
+title("Filtered Waveforms")
+xlabel("Time (s)")
+legend("Original Noisy Signal","Filtered Signal")
+grid on
+axis tight
 
 %% Filtrage de signal avec compensation de retard
 % Concevez un filtre elliptique passe-bas IIR du 7e ordre 
 % avec une fréquence de coupure de 50 Hz.
 % Une filtrage d'ordre 7 introduit un retard de 3.5 echantillons
 
-df4 = designfilt("lowpassfir", ...
+Fnorm = 50/(250/2); % Normalized frequency
+df4 = designfilt("lowpassiir", ...
     FilterOrder=7, ...
     PassbandFrequency=Fnorm, ...
     PassbandRipple=1, ...
-    stopbandAttenuation=60);
+    StopbandAttenuation=60);
 
 grpdelay(df4, nb_samples, Fs)
 D2 = mean(grpdelay(df4, nb_samples, Fs));
 
 %% RII filter
 % Nonlinear phase filter - no delay compensation
-y1 = filter(df4, raw);
+y1 = filter(df3, raw);
 
 % Zero-phase implementation - delay compensation
 y2 = filtfilt(df4, raw);
