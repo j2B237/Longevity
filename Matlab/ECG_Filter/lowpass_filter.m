@@ -3,7 +3,7 @@
 data = readtable("donnees_holter_ecg.csv");
 
 % Extraction de l'index
-index = data.Index;
+index = data.Index_Global;
 
 % Extraction du timestamp
 timestamp = data.Timestamp_ms;
@@ -20,13 +20,12 @@ tps_sec = timestamp / 1000;
 filtered_ecg = lowpass(raw, fc, fs);
 
 %%
-
+figure;
 plot(tps_sec, raw, "r")
-hold on
-plot(tps_sec, filtered_ecg, "b")
+grid on;
 title('Signal ECG brut importé');
 xlabel('Temps (secondes)');
 ylabel('Amplitude');
-grid on
-%%
+
+%% Lissage du signal a l'aide d'un filtre de lissage 
 
