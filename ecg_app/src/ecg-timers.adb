@@ -39,18 +39,29 @@ package body ECG.TIMERS is
    procedure Timer_COMPA_ISR is 
       Current_Sample : Interfaces.Unsigned_16 := 0;
       Clean_Sample   : Interfaces.Unsigned_16 := 0;
+      Filtered_Signal: Interfaces.Unsigned_16 := 0;
+
    begin
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
 
       --  Apply cascade filter 
-      Update (Current_Sample, Clean_Sample);
+      Cascade_Bloc: declare
+         Notch_Output : Interfaces.Integer_32 := 
+            ECG.DSP.Filter_Notch (Sample => Current_Sample);
+      begin
+         Clean_Sample := ECG.DSP.Filter_Lowpass (Notch_Output);
+      end Cascade_Bloc;
+
+      --  Get the moving average value and stored it back to
+      --  Filtered_Signal object 
+      Update (Clean_Sample, Filtered_Signal);
 
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then
-         Buffer_A (Sample_Index) := Clean_Sample;
+         Buffer_A (Sample_Index) := Filtered_Signal;
       else
-         Buffer_B (Sample_Index) := Clean_Sample;
+         Buffer_B (Sample_Index) := Filtered_Signal;
       end if;
 
       --  Buffer swapping through Index management

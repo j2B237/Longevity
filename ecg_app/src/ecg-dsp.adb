@@ -7,42 +7,33 @@ package body ECG.DSP is
    --------------------------------------------
    --  Variables d'état pour le filtre Notch --
    --------------------------------------------
-   
-   Notch_X1, Notch_X2 : Interfaces.Integer_32 := 0;
-   pragma Volatile (Notch_X1);
-   pragma Volatile (Notch_X2);
+   SCALE : constant := 16384;
 
-   Notch_Y1, Notch_Y2 : Interfaces.Integer_32 := 0;
-   pragma Volatile (Notch_Y1);
-   pragma Volatile (Notch_Y2);
+   type Int32_Array is array (1 .. 3) of Interfaces.Integer_32;
+
+   --  Echelle de mise en conformite entiere : 2^14 = 16384
+   --  Coef Notch 50Hz mis a l'echelle
+   B_Notch : constant Int32_Array := (16_095, -9_947, 16_095);
+   A_Notch : constant Int32_Array := (16_384, -9_947, 15_806);
 
    -------------------------------------------------
    --  Variables d'état pour le filtre Passe-bas  --
    -------------------------------------------------
 
-   --  Les coefficients du filtre passe-bas a phase lineaire 
+   --  Coef Lowpass 40Hz mis a l'echelle
+   B_Low : constant Int32_Array := (2_381, 4_762, 2_381);
+   A_Low : constant Int32_Array := (16_384, -10_994, 4_134);
+   
+   --  Buffer historique (X => Entrees, Y => Sorties) en Integer_32
+   --  pour gerer les valeurs negatives transitoires pendant le filtrage
 
-   --  Un filtre d'ordre 10 introduit un retard 
-   --  D = 70 / 2 = 35 echantillons
+   X_Notch, Y_Notch  : Int32_Array := (0, 0, 0);
+   X_Low, Y_Low      : Int32_Array := (0, 0, 0);
 
-   Filter_Order : constant := 70;
-
-   -- Coefficients pour filtre d'ordre 6 (Virgule fixe *1024)
-   Filter_Coefs : constant array (0 .. Filter_Order) of Interfaces.Integer_32 := (
-         0, -1, -1, 1, 1, 0, -2, -1, 1, 3, 0, -4, -3, 3, 6, 0, -8, -6, 6, 12,
-         0, -15, -11, 12, 22, 0, -30, -21, 25, 48, 0, -75, -63, 95, 310, 410,
-         310, 95, -63, -75, 0, 48, 25, -21, -30, 0, 22, 12, -11, -15, 0, 12, 6,
-         -6, -8, 0, 6, 3, -3, -4, 0, 3, 1, -1, -2, 0, 1, 1, -1, -1, 0
-   );
-
-
-
-   --  Historique des 8 derniers echantillons 
-   Last_Samples : array(0 .. Filter_Order) of Interfaces.Integer_32 := (others => 0) 
-      with Volatile_Components;
-   pragma Volatile (Last_Samples);
-
-   Head : Natural := 0 with Volatile;
+   pragma Volatile (X_Notch);
+   pragma Volatile (Y_Notch);
+   pragma Volatile (X_Low);
+   pragma Volatile (Y_Low);
 
    ---------------------
    --  Reset_Filters  --
@@ -50,16 +41,12 @@ package body ECG.DSP is
 
    procedure Reset_Filters is
    begin
-
-      --  Reset Notch filter
-      Notch_X1 := 0; Notch_X2 := 0;
-      Notch_Y1 := 0; Notch_Y2 := 0;
-      Head     := 0;
-
-      for I in 0 .. Filter_Order loop
-         Last_Samples (I) := 0;
-      end loop;
-
+      --  Reset Notch and lowpass filter params
+      
+      X_Notch := (0, 0, 0);
+      Y_Notch := (0, 0, 0);
+      X_Low   := (0, 0, 0);
+      Y_Low   := (0, 0, 0);
 
       --  Reset Moving Average Filter
       ECG.DSP.Generic_Moving_Average_Filter.Reset_filter;
@@ -71,72 +58,74 @@ package body ECG.DSP is
    --------------------
 
    function Filter_Notch (Sample : Interfaces.Unsigned_16) 
-      return Interfaces.Unsigned_16
+      return Interfaces.Integer_32
    is
-      X0 : constant Interfaces.Integer_32 := 
-         Interfaces.Integer_32 (Sample);
-      Y0 : Interfaces.Integer_32 := 0; 
-      --  Exemple d'équation de filtre Notch 50Hz standard à virgule fixe
-      --  y[n] = (x[n] - 2*cos(w)*x[n-1] + x[n-2] + 2*r*cos(w)*y[n-1] - r^2*y[n-2])
+      Notch_Accum : Interfaces.Integer_32;
+      Notch_Output : Interfaces.Integer_32;
    begin
-      --  Équation entière simplifiée (ajustez les coefficients selon le code précis de l'Ino)
-      --  Ici, une approximation classique à virgule fixe :
-      Y0 := X0 - Notch_X1 + Notch_X2; 
-      
-      --  Mise à jour de la ligne à retard pour X
-      Notch_X2 := Notch_X1;
-      Notch_X1 := X0;
+     
+     --  Decalage temporelle des anciennes valeurs
+     X_Notch (3) := X_Notch (2);
+     X_Notch (2) := X_Notch (1);
+     X_Notch (1) := Interfaces.Integer_32 (Sample);
 
-      --  Mise à jour de la ligne à retard pour Y
-      Notch_Y2 := Notch_Y1;
-      Notch_Y1 := Y0;
+     Y_Notch (3)  := Y_Notch (2);
+     Y_Notch (2)  := Y_Notch (1);
 
-      return Interfaces.Unsigned_16 (Y0);             --  Assurer que ça reste entre 0 et 1023
+     --  Calcul du produit de convolution
+     Notch_Accum := (B_Notch(1) * X_Notch(1)) + 
+                  (B_Notch(2) * X_Notch(2)) + 
+                  (B_Notch(3) * X_Notch(3)) - 
+                  (A_Notch(2) * Y_Notch(2)) - 
+                  (A_Notch(3) * Y_Notch(3));
 
-   exception
-      when others => return Sample;                   --  Sécurité en cas de débordement
+      --  Bits shift vers la droite de 14 bits
+      --  Notch_Output := Notch_Accum / SCALE;
+      Notch_Output := Interfaces.Integer_32 (Notch_Accum / SCALE);
+      Y_Notch (1)  := Notch_Output;
+
+      --  Output of Notch becomes Input of Lowpass filter
+      return Notch_Output;
+
    end Filter_Notch;
 
    ----------------------
    --  Filter_Lowpass  --
    ----------------------
 
-   function Filter_Lowpass (Sample : Interfaces.Unsigned_16)
+   function Filter_Lowpass (Sample : Interfaces.Integer_32)
       return Interfaces.Unsigned_16 
    is
-      -- Correction : Initialisation explicite indispensable en Ada
-      Accumulator : Interfaces.Integer_32 := 0;
-      Sign_Index  : Integer := 0;
+      Low_Accum : Interfaces.Integer_32;
+      Low_Output : Interfaces.Unsigned_16;
    begin
-      -- On stocke le signal arrivant
-      Last_Samples (Head) := Interfaces.Integer_32 (Sample);
-  
-      --  Equation de convolution
-      for K in 0 .. Filter_Order loop
-         Sign_Index := Head - K;
-         
-         -- Gestion stricte et sûre du buffer circulaire pour AVR
-         if Sign_Index < 0 then
-            Sign_Index := Sign_Index + (Filter_Order + 1);
-         end if;
+     
+      --   Low pass filter at 40Hz.
+      X_Low (3) := X_Low (2);
+      X_Low (2) := X_Low (1);
+      X_Low (1) := Sample;
 
-         Accumulator := @ + (Filter_Coefs (K) * Last_Samples (Sign_Index));
-      end loop;
+      Y_Low (3) := Y_Low (2);
+      Y_Low (2) := Y_Low (1);
 
-      --  On fait avancer la tête du buffer circulaire
-      Head := (@ + 1) mod (Filter_Order + 1);
+      -- Calcul du produit de convolution
+      Low_Accum := (B_Low(1) * X_Low(1)) + 
+                   (B_Low(2) * X_Low(2)) + 
+                   (B_Low(3) * X_Low(3)) - 
+                   (A_Low(2) * Y_Low(2)) - 
+                   (A_Low(3) * Y_Low(3));
 
-      --  Compensation du gain : On divise par 1024
-      Accumulator := @ / 1024;
+      Y_Low (1)  := Low_Accum / SCALE;
+      Low_Output := Interfaces.Unsigned_16 (Y_Low (1));
 
-      --  Sécurité Anti-saturation de l'ADC (0 .. 1023)
-      if Accumulator < 0 then
-         return 0;
-      elsif Accumulator > 1023 then
-         return 1023;
-      else
-         return Interfaces.Unsigned_16 (Accumulator);
+      --  Protection against overflow
+      if Low_Output < 0 then 
+         Low_Output := 0;
+      elsif Low_Output >= 65535 then
+         Low_Output := 65535;
       end if;
+
+      return Low_Output;
 
    end Filter_Lowpass;
 
