@@ -32,10 +32,11 @@ private
    --  when collecting samples. But For now this match value I observe
    --  when I monitor myself.
    
-   THRESHOLD      : constant := 570;
+   THRESHOLD      : constant := 600;
    THRESHOLD_MIN  : constant := 5200;
    THRESHOLD_MAX  : constant := 650;
    NUMERATOR      : constant := 15000;
+   
    BPM_Counter    : Natural with Volatile;
    BPM_Value      : Interfaces.Unsigned_16 with Volatile;
    Pic_On_Pending : Boolean := False with Volatile;

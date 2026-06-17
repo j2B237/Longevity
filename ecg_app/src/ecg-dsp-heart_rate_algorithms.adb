@@ -41,6 +41,7 @@ package body ECG.DSP.Heart_Rate_Algorithms is
       --  Increment counter each call
       BPM_Counter := @ + 1;
 
+      -- THRESHOLD = 600
       if Clean_Sample > THRESHOLD then
          if not Pic_On_Pending then
             Pic_On_Pending := True;

@@ -1,14 +1,18 @@
+with ECG.Interrupt;
 with System.Machine_Code;
 
 with ECG;
 with ECG.ADC;
 with ECG.DSP;
 with ECG.DSP.Heart_Rate_Algorithms;
+with ECG.DSP.Monitoring_Filters;
+
+
 with ECG.Manager;
-with ECG.TIMERS;
+--   with ECG.TIMERS;
 with ECG.UART;
 with AD8232;
-with LED;
+--  with LED;
 
 package body ECG.Hardware is
       
@@ -31,9 +35,11 @@ package body ECG.Hardware is
    begin
 
       --  Led config
-      LED.Init;
+      --  LED.Init;
 
-      ECG.DSP.Reset_Filters;
+      --  ECG.DSP.Reset_Filters;
+      Monitoring_Filters.Reset_Filters;
+
       Heart_Rate_Algorithms.Initialize;
       
       --  Config AD8232
@@ -43,13 +49,15 @@ package body ECG.Hardware is
       ECG.ADC.Init_ADC0;
 
       --  Config Timer1 in mode CTC
-      ECG.TIMERS.Init_Timer1;
+      --  ECG.TIMERS.Init_Timer1;
+      ECG.Interrupt.Init_Timer1;
 
       -- Config UART
       ECG.UART.Init
         (Baud_Divider => ECG.UART.Baud_115200_16MHz, 
         Double_Speed => False, Mode => interrupt_tx);
 
+      --   Enable Global Interrupts
       Enable_Interrupts;
    end Init_hardware;
 
