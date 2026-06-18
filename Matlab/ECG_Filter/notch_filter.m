@@ -9,7 +9,7 @@ fprintf('--- Coefficients NOTCH 50 Hz ---\n');
 fprintf('b = [%.6f, %.6f, %.6f]\n', b_notch(1), b_notch(2), b_notch(3));
 fprintf('a = [%.6f, %.6f, %.6f]\n\n', a_notch(1), a_notch(2), a_notch(3));
 
-%% 2. Filtre Passe-bas 40 Hz (IIR Butterworth ordre 2)
+%% 2. Filtre Passe-bas 60 Hz (IIR Butterworth ordre 2)
 fc = 60; % Fréquence de coupure
 [b_low, a_low] = butter(2, fc/(Fs/2), 'low');
 

@@ -40,6 +40,8 @@ package body ECG.Interrupt is
    procedure Timer_COMPA_ISR is 
       Current_Sample : Interfaces.Unsigned_16 := 0;
       Clean_Sample   : Interfaces.Unsigned_16 := 0;
+      Filtered_Signal: Interfaces.Unsigned_16 := 0;
+
    begin
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
@@ -49,7 +51,7 @@ package body ECG.Interrupt is
 
       --  Get the moving average value and stored it back to
       --  Filtered_Signal object 
-     --   Generic_Moving_Average_Filter.Update (Clean_Sample, Filtered_Signal);
+      --  Generic_Moving_Average_Filter.Update (Current_Sample, Filtered_Signal);
 
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then

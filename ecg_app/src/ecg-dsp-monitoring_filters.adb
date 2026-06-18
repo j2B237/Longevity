@@ -19,9 +19,13 @@ package body ECG.DSP.Monitoring_Filters is
 
    --  State variables for Low pass filter
    --  Coef Lowpass 40Hz mis a l'echelle
-   B_Low : constant Int32_Array_3 := (2_381, 4_762, 2_381);
-   A_Low : constant Int32_Array_3 := (16_384, -10_994, 4_134);
+   --  B_Low : constant Int32_Array_3 := (2_381, 4_762, 2_381);
+   --  A_Low : constant Int32_Array_3 := (16_384, -10_994, 4_134);
 
+   --  State variables for Low pass filter
+   --  Coef Lowpass 60Hz mis a l'echelle
+   B_Low : constant Int32_Array_3 := (4501, 9002, 4501);
+   A_Low : constant Int32_Array_3 := (16384, -1206, 2827);
 
    --  State variable for High Pass filter 
    --  First order filter at 0.5 Hz
@@ -85,26 +89,26 @@ package body ECG.DSP.Monitoring_Filters is
       -----------------------------------------------------------------
       -- ÉTAGE 2 : Filtre Notch (50 Hz) - Suppression du réseau électrique
       -----------------------------------------------------------------
-      --  X_Notch(3) := X_Notch(2);
-      --  X_Notch(2) := X_Notch(1);
-      --  X_Notch(1) := High_Output;
-      --  Y_Notch(3) := Y_Notch(2);
-      --  Y_Notch(2) := Y_Notch(1);
+      X_Notch(3) := X_Notch(2);
+      X_Notch(2) := X_Notch(1);
+      X_Notch(1) := High_Output;
+      Y_Notch(3) := Y_Notch(2);
+      Y_Notch(2) := Y_Notch(1);
 
-      --  Notch_Accum := (B_Notch(1) * X_Notch(1)) + 
-      --                 (B_Notch(2) * X_Notch(2)) + 
-      --                 (B_Notch(3) * X_Notch(3)) - 
-      --                 (A_Notch(2) * Y_Notch(2)) - 
-      --                 (A_Notch(3) * Y_Notch(3));
-      --  Notch_Output := Notch_Accum / SCALE_FACTOR;
-      --  Y_Notch(1)   := Notch_Output;
+      Notch_Accum := (B_Notch(1) * X_Notch(1)) + 
+                     (B_Notch(2) * X_Notch(2)) + 
+                     (B_Notch(3) * X_Notch(3)) - 
+                     (A_Notch(2) * Y_Notch(2)) - 
+                     (A_Notch(3) * Y_Notch(3));
+      Notch_Output := Notch_Accum / SCALE_FACTOR;
+      Y_Notch(1)   := Notch_Output;
 
       -----------------------------------------------------------------
-      -- ÉTAGE 2 : Filtre Passe-Bas (40 Hz) - Atténuation des bruits de muscles
+      -- ÉTAGE 2 : Filtre Passe-Bas (80 Hz) - Atténuation des bruits de muscles
       -----------------------------------------------------------------
       X_Low(3) := X_Low(2);
       X_Low(2) := X_Low(1);
-      X_Low(1) := High_Output;
+      X_Low(1) := Notch_Output;
       Y_Low(3) := Y_Low(2);
       Y_Low(2) := Y_Low(1);
 
