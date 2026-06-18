@@ -1,6 +1,9 @@
+with ECG.DSP.Generic_Moving_Average_Filter;
+
 package body ECG.DSP.Monitoring_Filters is
    
    use Interfaces;
+   use ECG.DSP;
 
    --  Private data type
    type Int32_Array_2 is array (1 .. 2) of Interfaces.Integer_32;
@@ -16,14 +19,19 @@ package body ECG.DSP.Monitoring_Filters is
 
    --  State variables for Low pass filter
    --  Coef Lowpass 40Hz mis a l'echelle
-   B_Low : constant Int32_Array_3 := (2_381, 4_762, 2_381);
-   A_Low : constant Int32_Array_3 := (16_384, -10_994, 4_134);
+   --  B_Low : constant Int32_Array_3 := (2_381, 4_762, 2_381);
+   --  A_Low : constant Int32_Array_3 := (16_384, -10_994, 4_134);
 
+   --  State variables for Low pass filter
+   --  Coef Lowpass 60Hz mis a l'echelle
+   B_Low : constant Int32_Array_3 := (4501, 9002, 4501);
+   A_Low : constant Int32_Array_3 := (16384, -1206, 2827);
 
    --  State variable for High Pass filter 
    --  First order filter at 0.5 Hz
    B_High : constant Int32_Array_2 := (16_318, -16_318);
-   A_High : constant Int32_Array_2 := (16_384, -16_253);
+   --A_High : constant Int32_Array_2 := (16_384, -16_253);
+   A_High : constant Int32_Array_2 := (16_384, -1_253);
 
    --  Buffer historique (X => Entrees, Y => Sorties) en Integer_32
    --  pour gerer les valeurs negatives transitoires pendant le filtrage
@@ -62,6 +70,7 @@ package body ECG.DSP.Monitoring_Filters is
       High_Accum,  High_Output  : Interfaces.Integer_32 := 0;
       Notch_Accum, Notch_Output : Interfaces.Integer_32 := 0;
       Low_Accum,   Low_Output   : Interfaces.Integer_32 := 0;
+      Final_Output              : Interfaces.Unsigned_16:= 0;
    begin
 
       -----------------------------------------------------------------
@@ -76,6 +85,7 @@ package body ECG.DSP.Monitoring_Filters is
                     (A_High(2) * Y_High(2));
       High_Output := High_Accum / SCALE_FACTOR;
       Y_High(1)   := High_Output;
+  
 
       -----------------------------------------------------------------
       -- ÉTAGE 2 : Filtre Notch (50 Hz) - Suppression du réseau électrique
@@ -95,7 +105,7 @@ package body ECG.DSP.Monitoring_Filters is
       Y_Notch(1)   := Notch_Output;
 
       -----------------------------------------------------------------
-      -- ÉTAGE 3 : Filtre Passe-Bas (40 Hz) - Atténuation des bruits de muscles
+      -- ÉTAGE 2 : Filtre Passe-Bas (80 Hz) - Atténuation des bruits de muscles
       -----------------------------------------------------------------
       X_Low(3) := X_Low(2);
       X_Low(2) := X_Low(1);
@@ -115,10 +125,15 @@ package body ECG.DSP.Monitoring_Filters is
       -----------------------------------------------------------------
       -- SATURATION SÉCURISÉE (0 - 65535)
       -----------------------------------------------------------------
+
       if Low_Output < 0 then
-         Low_Output := 0;
+         Low_Output := 512;
       elsif Low_Output > MAX then
          Low_Output := MAX;
+      elsif Low_Output > 0 and Low_Output < MAX then
+         Low_Output := @ + 512;        
+         -- Offset de recentrage a mi-echelle pour voir
+         -- apparaitre les ondes Q et S.
       end if;
 
       return Interfaces.Unsigned_16(Low_Output);

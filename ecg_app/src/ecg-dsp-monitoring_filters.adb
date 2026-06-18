@@ -30,7 +30,8 @@ package body ECG.DSP.Monitoring_Filters is
    --  State variable for High Pass filter 
    --  First order filter at 0.5 Hz
    B_High : constant Int32_Array_2 := (16_318, -16_318);
-   A_High : constant Int32_Array_2 := (16_384, -16_253);
+   --A_High : constant Int32_Array_2 := (16_384, -16_253);
+   A_High : constant Int32_Array_2 := (16_384, -1_253);
 
    --  Buffer historique (X => Entrees, Y => Sorties) en Integer_32
    --  pour gerer les valeurs negatives transitoires pendant le filtrage
@@ -63,75 +64,87 @@ package body ECG.DSP.Monitoring_Filters is
    -----------------------
    --  Cascade_Filters  --
    -----------------------
-
    function Cascade_Filters (Sample : Interfaces.Unsigned_16)
       return Interfaces.Unsigned_16 is
-      High_Accum,  High_Output  : Interfaces.Integer_32 := 0;
-      Notch_Accum, Notch_Output : Interfaces.Integer_32 := 0;
-      Low_Accum,   Low_Output   : Interfaces.Integer_32 := 0;
-      Final_Output              : Interfaces.Unsigned_16:= 0;
+      
+      X0, Y0       : Interfaces.Integer_32;
+      High_Accum   : Interfaces.Integer_32;
+      Notch_Accum  : Interfaces.Integer_32;
+      Low_Accum    : Interfaces.Integer_32;
+      Final_Output : Interfaces.Integer_32;
    begin
 
       -----------------------------------------------------------------
-      -- ÉTAGE 1 : Filtre Passe-Haut (0.5 Hz) - Suppression de la dérive
+      -- ÉTAGE 1 : Filtre Passe-Haut (0.5 Hz)
       -----------------------------------------------------------------
+      X0 := Interfaces.Integer_32(Sample);
+      
+      -- Calcul basé sur l'état présent (X_High(1) est x[n-1])
+      High_Accum := (B_High(1) * X0) + (B_High(2) * X_High(1)) - 
+                    (A_High(2) * Y_High(1));
+      
+      Y0 := High_Accum / SCALE_FACTOR;
 
-      X_High(2) := X_High(1);
-      X_High(1) := Interfaces.Integer_32(Sample);
-      Y_High(2) := Y_High(1);
+      -- Sauvegarde et décalage de l'historique pour le prochain échantillon
+      X_High(1) := X0;
+      Y_High(1) := Y0;
 
-      High_Accum := (B_High(1) * X_High(1)) + (B_High(2) * X_High(2)) - 
-                    (A_High(2) * Y_High(2));
-      High_Output := High_Accum / SCALE_FACTOR;
-      Y_High(1)   := High_Output;
-  
 
       -----------------------------------------------------------------
-      -- ÉTAGE 2 : Filtre Notch (50 Hz) - Suppression du réseau électrique
+      -- ÉTAGE 2 : Filtre Notch (50 Hz)
       -----------------------------------------------------------------
-      X_Notch(3) := X_Notch(2);
+      X0 := Y0; -- L'entrée du Notch est la sortie du Passe-Haut
+      
+      Notch_Accum := (B_Notch(1) * X0) + 
+                     (B_Notch(2) * X_Notch(1)) + 
+                     (B_Notch(3) * X_Notch(2)) - 
+                     (A_Notch(2) * Y_Notch(1)) - 
+                     (A_Notch(3) * Y_Notch(2));
+      
+      Y0 := Notch_Accum / SCALE_FACTOR;
+
+      -- Décalage historique Notch (Du plus ancien au plus récent)
       X_Notch(2) := X_Notch(1);
-      X_Notch(1) := High_Output;
-      Y_Notch(3) := Y_Notch(2);
+      X_Notch(1) := X0;
       Y_Notch(2) := Y_Notch(1);
+      Y_Notch(1) := Y0;
 
-      Notch_Accum := (B_Notch(1) * X_Notch(1)) + 
-                     (B_Notch(2) * X_Notch(2)) + 
-                     (B_Notch(3) * X_Notch(3)) - 
-                     (A_Notch(2) * Y_Notch(2)) - 
-                     (A_Notch(3) * Y_Notch(3));
-      Notch_Output := Notch_Accum / SCALE_FACTOR;
-      Y_Notch(1)   := Notch_Output;
 
       -----------------------------------------------------------------
-      -- ÉTAGE 2 : Filtre Passe-Bas (80 Hz) - Atténuation des bruits de muscles
+      -- ÉTAGE 3 : Filtre Passe-Bas (60 Hz)
       -----------------------------------------------------------------
-      X_Low(3) := X_Low(2);
+      X0 := Y0;
+      
+      Low_Accum := (B_Low(1) * X0) + 
+                   (B_Low(2) * X_Low(1)) + 
+                   (B_Low(3) * X_Low(2)) - 
+                   (A_Low(2) * Y_Low(1)) - 
+                   (A_Low(3) * Y_Low(2));
+
+      Y0 := Low_Accum / SCALE_FACTOR;
+
+      -- Décalage historique Passe-Bas
       X_Low(2) := X_Low(1);
-      X_Low(1) := Notch_Output;
-      Y_Low(3) := Y_Low(2);
+      X_Low(1) := X0;
       Y_Low(2) := Y_Low(1);
+      Y_Low(1) := Y0;
 
-      Low_Accum := (B_Low(1) * X_Low(1)) + 
-                   (B_Low(2) * X_Low(2)) + 
-                   (B_Low(3) * X_Low(3)) - 
-                   (A_Low(2) * Y_Low(2)) - 
-                   (A_Low(3) * Y_Low(3));
-
-      Low_Output := Low_Accum / SCALE_FACTOR;
-      Y_Low(1)   := Low_Output;
 
       -----------------------------------------------------------------
-      -- SATURATION SÉCURISÉE (0 - 65535)
+      -- RECENTRAGE ET SATURATION SÉCURISÉE
       -----------------------------------------------------------------
+      -- 1. On applique l'offset de 512 pour remettre le signal à mi-échelle
+      
+      Final_Output := Y0 + 512;
 
-      if Low_Output < 0 then
-         Low_Output := 0;
-      elsif Low_Output > MAX then
-         Low_Output := MAX;
+      -- 2. Saturation stricte pour empêcher les débordements de l'Unsigned_16
+      if Final_Output < 0 then
+         Final_Output := 0;
+      elsif Final_Output > MAX then
+         Final_Output := MAX;
       end if;
 
-      return Interfaces.Unsigned_16(Low_Output);
+      return Interfaces.Unsigned_16(Final_Output);
 
    end Cascade_Filters;
 

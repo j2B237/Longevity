@@ -40,7 +40,7 @@ package body ECG.Interrupt is
    procedure Timer_COMPA_ISR is 
       Current_Sample : Interfaces.Unsigned_16 := 0;
       Clean_Sample   : Interfaces.Unsigned_16 := 0;
-      Filtered_Signal: Interfaces.Unsigned_16 := 0;
+      --Filtered_Signal: Interfaces.Unsigned_16 := 0;
 
    begin
       --  Reading AD8232 sensor through ADC
