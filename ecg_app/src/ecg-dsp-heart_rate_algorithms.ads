@@ -19,6 +19,12 @@ package ECG.DSP.Heart_Rate_Algorithms is
    --  Return the current BPM value
    function Get_BPM return Interfaces.Unsigned_16;
 
+   --  Amplify the ECG sample linearly for visualization.
+   --  The visualizer receives positive unsigned integer values.
+   --  The waveform shape is preserved by using a linear scale and
+   --  clamping to the Unsigned_16 range.
+   procedure Amplify_Sample (Sample : in Interfaces.Unsigned_16;
+                           Amplified_Value : out Interfaces.Unsigned_16);
 
    procedure Initialize;
 
@@ -36,6 +42,7 @@ private
    THRESHOLD_MIN  : constant := 5200;
    THRESHOLD_MAX  : constant := 650;
    NUMERATOR      : constant := 15000;
+   AMPLIFICATION_FACTOR : constant Interfaces.Unsigned_32 := 2;
    
    BPM_Counter    : Natural with Volatile;
    BPM_Value      : Interfaces.Unsigned_16 with Volatile;

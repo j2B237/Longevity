@@ -1,11 +1,13 @@
 with ECG.UART;
 with ECG.DSP.Heart_Rate_Algorithms;
+with Interfaces;
 
 package body HC05 is
    
    use ECG;
    use ECG.DSP;
-   
+   use Interfaces;
+
    ---------------------------
    --  Transmit_ECG_Packet  --
    ---------------------------
@@ -32,10 +34,14 @@ package body HC05 is
    --  This procedure send over UART 56 bytes of data
 
    procedure UART_Interrupt_Send (Data : ECG_Packet) is
+      --Amplified_Data : ECG_Packet;
+      Result : Interfaces.Unsigned_16;
    begin
-      --  Compute BPM first
+      --  Process samples: detect R-waves on raw data, amplify for visualization
       for I in Data'Range loop
-         Heart_Rate_Algorithms.Update_Heart_Rate (Data (I));
+         Heart_Rate_Algorithms.Update_Heart_Rate (Data (I));                  -- Detect on raw value
+         --Heart_Rate_Algorithms.Amplify_Sample (Data (I), Result);             -- Amplify for display
+         --Amplified_Data (I) := Result;                                        -- Store amplified value for transmission
       end loop;
 
       -- HEADER Synchronisation value (LSB: 85 (55), MSB: 170 (AA))

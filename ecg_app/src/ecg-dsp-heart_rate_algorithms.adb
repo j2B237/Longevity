@@ -31,6 +31,22 @@ package body ECG.DSP.Heart_Rate_Algorithms is
    end Get_BPM;
 
    -------------------------
+   --  Amplify_Sample      --
+   -------------------------
+
+   procedure Amplify_Sample (Sample : in Interfaces.Unsigned_16;
+                        Amplified_Value : out Interfaces.Unsigned_16)
+   is
+      Scaled : Interfaces.Unsigned_32 := Interfaces.Unsigned_32 (Sample) * AMPLIFICATION_FACTOR;
+   begin
+      if Scaled > Interfaces.Unsigned_32 (Interfaces.Unsigned_16'Last) then
+         Amplified_Value := Interfaces.Unsigned_16'Last;
+      else
+         Amplified_Value := Interfaces.Unsigned_16 (Scaled);
+      end if;
+   end Amplify_Sample;
+
+   -------------------------
    --  Update_Heart_Rate  --
    -------------------------
 
