@@ -35,14 +35,14 @@ package ECG.DSP.Monitoring_Filters is
 
    procedure Reset;
 
-   -- Initialise le filtre avec le coefficient Alpha mis à l'échelle en Q14 (0..16384)
-   procedure Initialize_Filter (Alpha_Q14 : in Interfaces.Integer_32);
-
    -- Applique le filtre passe-haut sur un échantillon ECG
    function Apply_High_Pass (Input : in Interfaces.Unsigned_16) 
       return Interfaces.Unsigned_16;
 
 private
+
+   -- Initialise le filtre avec le coefficient Alpha mis à l'échelle en Q14 (0..16384)
+   procedure Initialize_Filter (Alpha_Q14 : in Interfaces.Integer_32);
 
    type ECG_State is record
       X_Prev    : Interfaces.Unsigned_16 := 0;

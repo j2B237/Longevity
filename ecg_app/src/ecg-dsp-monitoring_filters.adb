@@ -77,9 +77,15 @@ package body ECG.DSP.Monitoring_Filters is
       Final_Output              : Interfaces.Unsigned_16:= 0;
    begin
 
+<<<<<<< HEAD
       -----------------------------------------------------------------
       -- ÉTAGE 1 : Filtre Passe-Haut (0.5 Hz) - Suppression de la dérive
       -----------------------------------------------------------------
+=======
+      -- 2. Multiplication par le coefficient de lissage Alpha (Q14) en 32-bit
+      --    Prod = (Acc * Alpha_Q14) / 2^14
+      Prod := (Acc * High_Pass_Filter_Internal_State.Alpha_Q14) / 16384;
+>>>>>>> ea8135a (update coef value)
 
       X_High(2) := X_High(1);
       X_High(1) := Interfaces.Integer_32(Sample);
