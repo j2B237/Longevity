@@ -47,7 +47,7 @@ package body ECG.Interrupt is
       Current_Sample := AD8232.Get_Reading;
 
       --  Start Cascade filter
-      Clean_Sample := Monitoring_Filters.Cascade_Filters (Current_Sample);
+      Clean_Sample := Monitoring_Filters.Apply_High_Pass (Current_Sample);
 
       --  Get the moving average value and stored it back to
       --  Filtered_Signal object 

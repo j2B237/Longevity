@@ -38,7 +38,7 @@ package body ECG.Hardware is
       --  LED.Init;
 
       --  ECG.DSP.Reset_Filters;
-      Monitoring_Filters.Reset_Filters;
+      Monitoring_Filters.Reset;
 
       Heart_Rate_Algorithms.Initialize;
       
