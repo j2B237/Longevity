@@ -27,25 +27,25 @@ package body ECG.DSP.Generic_Moving_Average_Filter is
    end Reset_filter;
 
 
-   ---------------
-   --   Update  --
-   ---------------
+   --------------
+   --  Apply  --
+   -------------
 
-   procedure Update (New_Sample : Interfaces.Unsigned_16; 
-                     Clean_Sample : out Interfaces.Unsigned_16) is
-
+   function Apply (Input : Interfaces.Integer_32)
+      return Interfaces.Integer_32
+   is  
       --  Get the old value from the filter array
-      Old_Sample : Interfaces.Unsigned_16 := 
+      Old_Sample : Interfaces.Integer_32 := 
                   Filter.Readings (Filter.ReadingIndex);
    begin
       --  Remove the old value before overriding
-      Filter.Total := @ - Interfaces.Unsigned_32 (Old_Sample);
+      Filter.Total := @ - Old_Sample;
 
       --  Store the new value at current index
-      Filter.Readings (Filter.ReadingIndex) := New_Sample;
+      Filter.Readings (Filter.ReadingIndex) := Input;
 
       --  Update total with the new value
-      Filter.Total := @ + Interfaces.Unsigned_32 (New_Sample);
+      Filter.Total := @ + Input;
 
       --  Move to next elements
       Filter.ReadingIndex := @ + 1;
@@ -53,11 +53,9 @@ package body ECG.DSP.Generic_Moving_Average_Filter is
          Filter.ReadingIndex := 0;
       end if;
 
-      Filter.Average := Interfaces.Unsigned_16 (
-                        Filter.Total / Interfaces.Unsigned_32 (Size)
-                     );
-      Clean_Sample := Filter.Average;
-
-   end Update;
+      Filter.Average := Filter.Total / Interfaces.Integer_32 (Size);
+      return Filter.Average;
+   end Apply;
+   
 
 end ECG.DSP.Generic_Moving_Average_Filter;

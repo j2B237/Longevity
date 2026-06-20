@@ -5,8 +5,6 @@ with AVR.MCU;
 with ECG;
 with ECG.ADC;
 with ECG.DSP;
-with ECG.DSP.Generic_Moving_Average_Filter;
-with ECG.DSP.High_Pass_Filter;
 
 with AD8232;
 
@@ -39,18 +37,12 @@ package body ECG.Interrupt is
    procedure Timer_COMPA_ISR is 
       Current_Sample : Interfaces.Unsigned_16 := 0;
       Clean_Sample   : Interfaces.Unsigned_16 := 0;
-      --Filtered_Signal: Interfaces.Unsigned_16 := 0;
-
    begin
       --  Reading AD8232 sensor through ADC
       Current_Sample := AD8232.Get_Reading;
 
       --  Start Cascade filter
-      Clean_Sample := High_Pass_Filter.Apply (Current_Sample);
-
-      --  Get the moving average value and stored it back to
-      --  Filtered_Signal object 
-      --  Generic_Moving_Average_Filter.Update (Current_Sample, Filtered_Signal);
+      Clean_Sample := ECG.DSP.Apply_Cascade_Filters (Current_Sample);
 
       --  Store ECG data in the current active buffer
       if Filling_Buffer_A then

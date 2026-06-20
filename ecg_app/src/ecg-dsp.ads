@@ -27,8 +27,15 @@ package ECG.DSP is
 
    pragma Preelaborate;
 
+   use Interfaces;   
+
+   MAX : constant := 1023;
+
    -- Initialize filters states
    procedure Reset_Filters;
+   --  Apply High Pass filter -> Notch Filter -> Low pass filter -> Clean Sample
+   function Apply_Cascade_Filters (Sample : Interfaces.Unsigned_16)
+      return Interfaces.Unsigned_16;
 
 
 end ECG.DSP;

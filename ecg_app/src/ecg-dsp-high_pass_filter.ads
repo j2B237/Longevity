@@ -36,8 +36,8 @@ package ECG.DSP.High_Pass_Filter is
    procedure Reset;
 
    -- Applique le filtre passe-haut sur un échantillon ECG
-   function Apply (Input : in Interfaces.Unsigned_16) 
-      return Interfaces.Unsigned_16;
+   function Apply (Input : in Interfaces.Integer_32) 
+      return Interfaces.Integer_32;
 
 private
 
@@ -45,12 +45,16 @@ private
    procedure Initialize (Alpha_Q14 : in Interfaces.Integer_32);
 
    type ECG_State is record
-      X_Prev    : Interfaces.Unsigned_16 := 0;
+      X_Prev    : Interfaces.Integer_32 := 0;
       -- Y_Prev en unsigned permet de conserver des valeurs d'ondes
       -- Q et S negatif malgres le recentrage a zero fait par
       -- le filtre passe-haut
-      Y_Prev    : Interfaces.Integer_16 := 0;
+      Y_Prev    : Interfaces.Integer_32 := 0;
       Alpha_Q14 : Interfaces.Integer_32 := 0;          -- Alpha_Q14 = 0.9875 (0.9875 * 16384)
    end record;
+
+
+   High_Pass_Filter_Internal_State : ECG_State := (others => 0);
+   pragma Volatile (High_Pass_Filter_Internal_State);
    
 end ECG.DSP.High_Pass_Filter;

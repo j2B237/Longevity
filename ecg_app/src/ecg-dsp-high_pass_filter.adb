@@ -1,10 +1,8 @@
 package body ECG.DSP.High_Pass_Filter is
-
-   High_Pass_Filter_Internal_State : ECG_State with Volatile;
    
-   ---------------------
+   -------------
    --  Reset  --
-   ---------------------
+   -------------
 
    procedure Reset is
    begin
@@ -31,44 +29,24 @@ package body ECG.DSP.High_Pass_Filter is
    --  Apply  --
    -------------
 
-   function Apply (Input : in Interfaces.Unsigned_16)
-      return Interfaces.Unsigned_16
+   function Apply (Input : in Interfaces.Integer_32)
+      return Interfaces.Integer_32
    is
-      Acc             : Interfaces.Integer_32;
-      Prod            : Interfaces.Integer_32;
-      Unsigned_Output : Interfaces.Unsigned_16;
-      Signed_Output   : Interfaces.Integer_16;
+      Acc : Interfaces.Integer_32;
    begin
       -- 1. Calcul intermédiaire en 32-bit (Y_prev + Input - X_prev)
-      Acc := Interfaces.Integer_32 (High_Pass_Filter_Internal_State.Y_Prev)
-             + Interfaces.Integer_32 (Input)
-             - Interfaces.Integer_32 (High_Pass_Filter_Internal_State.X_Prev);
+      Acc := High_Pass_Filter_Internal_State.Y_Prev
+             + Input
+             - High_Pass_Filter_Internal_State.X_Prev;
 
       -- 2. Multiplication par le coefficient Alpha (Q14) en 32-bit
-      --    Prod = (Acc * Alpha_Q14) / 2^14
-      Prod := (Acc * High_Pass_Filter_Internal_State.Alpha_Q14) / 16384;
-
-      -- 3. Saturation dans la plage Integer_16
-      if Prod > Interfaces.Integer_32 (Interfaces.Integer_16'Last) then
-         Signed_Output := Interfaces.Integer_16'Last;
-      elsif Prod < Interfaces.Integer_32 (Interfaces.Integer_16'First) then
-         Signed_Output := Interfaces.Integer_16'First;
-      else
-         Signed_Output := Interfaces.Integer_16 (Prod);
-      end if;
+      Acc := (Acc * High_Pass_Filter_Internal_State.Alpha_Q14) / 16384;
 
       -- 4. Sauvegarde des états pour le prochain échantillon
       High_Pass_Filter_Internal_State.X_Prev := Input;
-      High_Pass_Filter_Internal_State.Y_Prev := Signed_Output;
+      High_Pass_Filter_Internal_State.Y_Prev := Acc;
 
-      -- 5. Conversion pour retour Unsigned_16 (clamp negative => 0)
-      if Signed_Output < 0 then
-         Unsigned_Output := Interfaces.Unsigned_16'First;
-      else
-         Unsigned_Output := Interfaces.Unsigned_16 (Signed_Output);
-      end if;
-
-      return Unsigned_Output;
+      return Acc;
 
    end Apply;
 

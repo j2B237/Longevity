@@ -12,30 +12,28 @@ package ECG.DSP.Generic_Moving_Average_Filter is
 
    use Interfaces;
 
-   Size : constant := 4;           -- Can be change to 16, 32, 64, 128, etc
+   Size : constant := 6;           -- Can be change to 16, 32, 64, 128, etc
 
 
    --  Object of this type will be modified by Interrupt routine
    --  therefore should be qualify by Volatile
-   type Reading_Array is array (0 .. Size - 1) of Interfaces.Unsigned_16;
+   type Reading_Array is array (0 .. Size - 1) of Interfaces.Integer_32;
    
    -- Record that act as filter object
    type Moving_Avg_Filter is
       record
          Readings       : Reading_Array;
          ReadingIndex   : Natural := 0;
-         Total          : Interfaces.Unsigned_32 := 0;
-         Average        : Interfaces.Unsigned_16 := 0;
+         Total          : Interfaces.Integer_32 := 0;
+         Average        : Interfaces.Integer_32 := 0;
       end record;
 
    --  Reset filter
    procedure Reset_filter;
-   
-   --  Procedure Update : that insert a new sample 
-   --  before average computing.
 
-   procedure Update (New_Sample : Interfaces.Unsigned_16;
-                     Clean_Sample : out Interfaces.Unsigned_16);
+   function Apply (Input : Interfaces.Integer_32)
+      return Interfaces.Integer_32;
+
 
 private
 
