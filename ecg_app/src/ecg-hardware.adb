@@ -5,8 +5,6 @@ with ECG;
 with ECG.ADC;
 with ECG.DSP;
 with ECG.DSP.Heart_Rate_Algorithms;
-with ECG.DSP.Monitoring_Filters;
-
 
 with ECG.Manager;
 --   with ECG.TIMERS;
@@ -37,8 +35,7 @@ package body ECG.Hardware is
       --  Led config
       --  LED.Init;
 
-      --  ECG.DSP.Reset_Filters;
-      Monitoring_Filters.Reset;
+      ECG.DSP.Reset_Filters;
 
       Heart_Rate_Algorithms.Initialize;
       

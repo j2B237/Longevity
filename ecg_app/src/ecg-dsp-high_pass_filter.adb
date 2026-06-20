@@ -1,4 +1,4 @@
-package body ECG.DSP.Monitoring_Filters is
+package body ECG.DSP.High_Pass_Filter is
 
    High_Pass_Filter_Internal_State : ECG_State with Volatile;
    
@@ -13,25 +13,25 @@ package body ECG.DSP.Monitoring_Filters is
       High_Pass_Filter_Internal_State.Alpha_Q14 := 0;
 
       -- Initialize with a default alpha ~= 0.9875 scaled to Q14
-      Initialize_Filter (16181);
+      Initialize (16181);
    end Reset;
    
-   ---------------------------
-   --   Initialize_Filter   --
-   ---------------------------
+   --------------------
+   --   Initialize   --
+   --------------------
 
-   procedure Initialize_Filter (Alpha_Q14 : in Interfaces.Integer_32) is
+   procedure Initialize (Alpha_Q14 : in Interfaces.Integer_32) is
    begin
       High_Pass_Filter_Internal_State.X_Prev    := 0;
       High_Pass_Filter_Internal_State.Y_Prev    := 0;
       High_Pass_Filter_Internal_State.Alpha_Q14 := Alpha_Q14;
-   end Initialize_Filter;
+   end Initialize;
 
-   -----------------------
-   --  Apply_High_Pass  --
-   -----------------------
+   -------------
+   --  Apply  --
+   -------------
 
-   function Apply_High_Pass (Input : in Interfaces.Unsigned_16)
+   function Apply (Input : in Interfaces.Unsigned_16)
       return Interfaces.Unsigned_16
    is
       Acc             : Interfaces.Integer_32;
@@ -70,6 +70,6 @@ package body ECG.DSP.Monitoring_Filters is
 
       return Unsigned_Output;
 
-   end Apply_High_Pass;
+   end Apply;
 
-end ECG.DSP.Monitoring_Filters;
+end ECG.DSP.High_Pass_Filter;

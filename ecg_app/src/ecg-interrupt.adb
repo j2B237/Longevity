@@ -6,7 +6,7 @@ with ECG;
 with ECG.ADC;
 with ECG.DSP;
 with ECG.DSP.Generic_Moving_Average_Filter;
-with ECG.DSP.Monitoring_Filters;
+with ECG.DSP.High_Pass_Filter;
 
 with AD8232;
 
@@ -15,7 +15,6 @@ with AD8232;
 package body ECG.Interrupt is
 
    use AVR;
-
    use ECG.DSP;
 
    ------------------ -
@@ -47,7 +46,7 @@ package body ECG.Interrupt is
       Current_Sample := AD8232.Get_Reading;
 
       --  Start Cascade filter
-      Clean_Sample := Monitoring_Filters.Apply_High_Pass (Current_Sample);
+      Clean_Sample := High_Pass_Filter.Apply (Current_Sample);
 
       --  Get the moving average value and stored it back to
       --  Filtered_Signal object 

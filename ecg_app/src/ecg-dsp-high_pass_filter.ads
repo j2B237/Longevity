@@ -21,7 +21,7 @@ with Interfaces;
 --  Alpha_Int = Alpha * 2^16
 --
 
-package ECG.DSP.Monitoring_Filters is
+package ECG.DSP.High_Pass_Filter is
 
    pragma Preelaborate;
 
@@ -36,13 +36,13 @@ package ECG.DSP.Monitoring_Filters is
    procedure Reset;
 
    -- Applique le filtre passe-haut sur un échantillon ECG
-   function Apply_High_Pass (Input : in Interfaces.Unsigned_16) 
+   function Apply (Input : in Interfaces.Unsigned_16) 
       return Interfaces.Unsigned_16;
 
 private
 
    -- Initialise le filtre avec le coefficient Alpha mis à l'échelle en Q14 (0..16384)
-   procedure Initialize_Filter (Alpha_Q14 : in Interfaces.Integer_32);
+   procedure Initialize (Alpha_Q14 : in Interfaces.Integer_32);
 
    type ECG_State is record
       X_Prev    : Interfaces.Unsigned_16 := 0;
@@ -53,4 +53,4 @@ private
       Alpha_Q14 : Interfaces.Integer_32 := 0;          -- Alpha_Q14 = 0.9875 (0.9875 * 16384)
    end record;
    
-end ECG.DSP.Monitoring_Filters;
+end ECG.DSP.High_Pass_Filter;
